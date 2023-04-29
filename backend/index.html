@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.io chat</title>
+  </head>
+  <style>
+    .chat-message {
+      display: flex;
+      margin-bottom: 10px;
+    }
+
+    .chat-message-left {
+      margin-right: auto;
+      background-color: #f1f0f0;
+      border-radius: 5px;
+      padding: 10px;
+      display: flex;
+      justify-content: left;
+    }
+
+    .chat-message-right {
+      margin-left: auto;
+      background-color: #dcf8c6;
+      border-radius: 5px;
+      padding: 10px;
+      display: flex;
+      justify-content: right;
+    }
+  </style>
+  <body>
+    <h1>Socket.io chat</h1>
+    <div id="chat-messages"></div>
+    <form id="message-form">
+      <input type="text" id="message-input">
+      <button type="submit">Send</button>
+    </form>
+    
+    <!-- Load the socket.io client library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // Connect to the server using socket.io
+      const socket = io();
+      
+      const chatMessages = document.getElementById('chat-messages');
+      const inputMsg = document.getElementById('input-msg');
+      // Handle incoming messages from the server
+      socket.on('message', (response) => {
+        if (typeof response === 'object') {
+            console.log(response)
+            const li = document.createElement('li');
+            const div = document.createElement('div');
+            const p = document.createElement('p');
+            if (response.userId === localStorage.getItem('userId')) {
+                p.textContent =  response.msg;
+              } else {
+                p.textContent = response.userId + ' : '  + response.msg;
+              }
+            div.appendChild(p);
+            div.classList.add('chat-message');
+        
+            if (response.userId === localStorage.getItem('userId')) {
+              div.classList.add('chat-message-right');
+            } else {
+              div.classList.add('chat-message-left');
+            }
+            chatMessages.appendChild(div);
+            return
+          }
+          localStorage.setItem('userId',response)
+          return;
+      });
+      
+      // Handle form submission
+      document.querySelector('#message-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Get the input value
+        const input = document.querySelector('#message-input');
+        const msg = input.value;
+        
+        // Emit the message to the server
+        
+        socket.emit('123', msg);
+        
+        // Clear the input
+        input.value = '';
+      });
+    </script>
+  </body>
+</html>

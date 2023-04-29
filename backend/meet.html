@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO Streaming Example</title>
+  </head>
+  <body>
+    <h1>Socket.IO Streaming Example</h1>
+    <video id="video" style="display: none;" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    User <img id="img" alt="">
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io();
+      var video = document.getElementById('video');
+      var canvas = document.getElementById('canvas');
+      var context = canvas.getContext('2d');
+      var myImage = document.getElementById('img');
+
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+          video.srcObject = stream;
+          video.play();
+        });
+ 
+        socket.on('getuserId', (userId) => {
+          console.log(userId)
+          localStorage.setItem('userId',userId)
+         })
+        socket.emit('getuserId', '');
+
+        socket.on('stream', (data) => {
+          myImage.src = data.image
+         })
+    
+      setInterval(function() {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        var image = canvas.toDataURL('image/png');
+        socket.emit('stream', {userId : localStorage.getItem('userId'),image : image});
+      }, 100);
+    </script>
+  </body>
+</html>
