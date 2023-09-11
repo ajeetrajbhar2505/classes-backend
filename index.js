@@ -14,7 +14,7 @@ const MongoClient = require('mongodb').MongoClient;
 
 
 // Connection URI
-const uri = process; // Change this to your MongoDB server URI
+const uri = process.env.mongo_url; // Change this to your MongoDB server URI
 
 const client = new MongoClient(uri);
 var database;
@@ -29,7 +29,7 @@ async function connectToMongoDB() {
 }
 connectToMongoDB();
 
-app.listen(3000, connectToMongoDB(), () => {
+app.listen(process.env.PORT, connectToMongoDB(), () => {
     console.log('app running fast');
 })
 
