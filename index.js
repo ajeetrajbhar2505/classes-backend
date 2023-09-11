@@ -2,13 +2,11 @@ const express = require("express");
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-var http = require("http");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { v4: uuidv4 } = require("uuid");
 const { ObjectId } = require("mongodb");
 dotenv.config();
-const server = http.createServer(app);
 app.use(cors());
 
 
@@ -16,7 +14,7 @@ const MongoClient = require('mongodb').MongoClient;
 
 
 // Connection URI
-const uri = 'mongodb+srv://ajeet:fYLvMkLPRY6vwbGy@cluster0.e5pj6.mongodb.net/'; // Change this to your MongoDB server URI
+const uri = process; // Change this to your MongoDB server URI
 
 const client = new MongoClient(uri);
 var database;
