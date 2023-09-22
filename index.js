@@ -20,31 +20,17 @@ app.use(cors());
 const MongoClient = require('mongodb').MongoClient;
 const uri = process.env.mongo_url; // Change this to your MongoDB server URI
 
+const client = new MongoClient(uri);
+var database;
 async function connectToMongoDB() {
     try {
-        const client = new MongoClient(uri,{ useUnifiedTopology: true });
-        await client.connect(); // Connect to MongoDB
-        const database = client.db('class'); // Specify the database name
-        // Now you can use the 'database' object to interact with MongoDB
-        return database;
+        database = client.db('class'); // Specify the database name
+
     } catch (err) {
         console.error('Error connecting to MongoDB:', err);
-        throw err; // Rethrow the error to handle it at a higher level if needed
     }
 }
-
-var database;
-
-// Usage
-(async () => {
-    try {
-         database = await connectToMongoDB();
-        // Now you can use 'database' to perform MongoDB operations
-    } catch (err) {
-        // Handle the error
-    }
-})();
-
+connectToMongoDB();
 
 app.listen(process.env.PORT, connectToMongoDB(), () => {
     console.log('app running fast');
@@ -139,6 +125,9 @@ app.post("/live", async (req, res) => {
         res.send({ status: 403, message: 'Something went wrong !' });
 
     }
+
+
+
 
 });
 
