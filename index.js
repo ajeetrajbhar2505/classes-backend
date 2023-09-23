@@ -251,10 +251,6 @@ app.get('/profile', (req, res) => {
 });
 
 
-// Logout route
-app.get('/logout', (req, res) => {
-    req.logout(); // Logs the user out
-    res.redirect('/'); // Redirects the user to the home page or any other appropriate page
-});
+
 
 
