@@ -10,7 +10,9 @@ const { ObjectId } = require("mongodb");
 dotenv.config();
 app.use(cors());
 
-
+const fs  = require('fs')
+const { google }=  require('googleapis')
+const apiKeys = require('./apiKey.json')
 
 
 
@@ -110,7 +112,7 @@ io.on("connection", (socket) => {
 app.post("/live", async (req, res) => {
     const { lec_id, live } = req.body
     let response = await database.collection('contentDetails').updateOne(
-        { _id: ObjectId(lec_id) },
+        { _id: new ObjectId(lec_id) },
         {
             $set:
             {
@@ -132,4 +134,49 @@ app.post("/live", async (req, res) => {
 });
 
 
+
+const scope = ["https://www.googleapis.com/auth/drive"]
+
+async function authorize(){
+    const jwtClient = new google.auth.JWT(
+        apiKeys.client_email,
+        null,
+        apiKeys.private_key,
+        scope
+    )
+
+    await jwtClient.authorize()
+
+    return jwtClient;
+}
+
+async function uploadFile(authClient){
+    return new Promise((resolve,rejected)=>{
+
+        const drive = google.drive({version:'v3',auth:authClient})
+
+        var fileMetaData =  {
+            name : 'photo.png',
+            parents : ["1CBsb1iOv_zEVn3A8JdxiiH3nWOrcUXpI"]
+        }
+
+        drive.files.create({
+            resource:fileMetaData,
+            media : {
+                body : fs.createReadStream('files/photo.png'),
+                mimetype : 'image/png'   
+            },
+            fields : 'id'
+        },function (err,file){
+            if(err){
+                return rejected(err)
+            }
+            resolve(file)
+        })
+
+    })
+}
+
+
+authorize().then(uploadFile).catch('E')
 
