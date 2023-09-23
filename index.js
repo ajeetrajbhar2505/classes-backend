@@ -7,8 +7,13 @@ const dotenv = require("dotenv");
 const { v4: uuidv4 } = require("uuid");
 const http = require("http")
 const { ObjectId } = require("mongodb");
+const multer = require('multer');
 dotenv.config();
 app.use(cors());
+
+// Configure multer to specify where to store uploaded files
+const storage = multer.memoryStorage(); // Store files in memory, you can configure this to save to disk
+const upload = multer({ storage: storage });
 
 const fs  = require('fs')
 const { google }=  require('googleapis')
@@ -67,19 +72,6 @@ app.get('/contentDetails/:classId/:lec_id', async (req, res) => {
     let response = await database.collection('contentDetails').find({ classId: classId, lec_id: lec_id }).toArray()
     if (response) {
         res.send(response)
-    }
-})
-
-
-
-app.post('/upsertContentDetails', async (req, res) => {
-    let body = req.body
-    let response = await database.collection('contentDetails').insertOne(body)
-    if (response) {
-        res.send({ status: 200, response: 'Content uploaded sucessfully' })
-    } else {
-        res.send({ status: 400, response: 'something went wrong' })
-
     }
 })
 
@@ -157,45 +149,71 @@ async function authorize(){
     return jwtClient;
 }
 
-async function uploadFile(authClient){
-    return new Promise((resolve,rejected)=>{
 
-        const drive = google.drive({version:'v3',auth:authClient})
-
-        var fileMetaData =  {
-            name : 'photo.png',
-            parents : ["1CBsb1iOv_zEVn3A8JdxiiH3nWOrcUXpI"]
+// Function to upload a file to Google Drive
+async function uploadFile(authClient, fileInfo) {
+    return new Promise((resolve, reject) => {
+      const drive = google.drive({ version: 'v3', auth: authClient });
+  
+      const fileMetaData = {
+        name: fileInfo.originalname,
+        parents: ['1CBsb1iOv_zEVn3A8JdxiiH3nWOrcUXpI'],
+      };
+  
+      drive.files.create(
+        {
+          resource: fileMetaData,
+          media: {
+            mimeType: fileInfo.mimetype,
+            body: fs.createReadStream('files/sample.mp4'),
+          },
+          fields: 'id',
+        },
+        function (err, file) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(file);
         }
+      );
+    });
+  }
+  
+  // Route to handle file upload
+  app.post('/upload', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+  
+    try {
+      const authClient = await authorize(); // Implement your authorization logic here
+      const uploadedFile = await uploadFile(authClient, req.file);
+      const fileId = uploadedFile.data.id;
+      const filePath = `https://drive.google.com/file/d/${fileId}/view`;
+      console.log('Uploaded file path:', filePath);
+      res.send('File uploaded successfully.');
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).send('An error occurred while uploading the file.');
+    }
+  });
 
-        drive.files.create({
-            resource:fileMetaData,
-            media : {
-                body : fs.createReadStream('files/photo.png'),
-                mimetype : 'image/png'   
-            },
-            fields : 'id'
-        },function (err,file){
-            if(err){
-                return rejected(err)
-            }
-            resolve(file)
-        })
+  
 
-    })
-}
+app.post('/upsertContentDetails', async (req, res) => {
+    let response = await database.collection('contentDetails').insertOne(body)
+    if (response) {
+        res.send({ status: 200, response: 'Content uploaded sucessfully' })
+    } else {
+        res.send({ status: 400, response: 'something went wrong' })
 
-
-authorize()
-.then(uploadFile)
-.then((uploadedFile) => {
-    const fileId = uploadedFile.data.id;
-    const filePath = `https://drive.google.com/file/d/${fileId}/view`;
-    console.log('Uploaded file path:', filePath);
+    }
 })
-.catch('E')
 
+
+
+  
 // Google signup 
-
 // Configure Google OAuth Strategys
 passport.use(new GoogleStrategy({
     clientID: process.env.OAuth_client_id,
