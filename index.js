@@ -185,14 +185,14 @@ async function uploadFile(authClient){
 }
 
 
-// authorize()
-// .then(uploadFile)
-// .then((uploadedFile) => {
-//     const fileId = uploadedFile.data.id;
-//     const filePath = `https://drive.google.com/file/d/${fileId}/view`;
-//     console.log('Uploaded file path:', filePath);
-// })
-// .catch('E')
+authorize()
+.then(uploadFile)
+.then((uploadedFile) => {
+    const fileId = uploadedFile.data.id;
+    const filePath = `https://drive.google.com/file/d/${fileId}/view`;
+    console.log('Uploaded file path:', filePath);
+})
+.catch('E')
 
 // Google signup 
 
@@ -205,9 +205,10 @@ passport.use(new GoogleStrategy({
     // Here, you can create or find a user in your database
     // based on the profile information returned by Google.
     // Example: const user = findOrCreateUser(profile);
-    // console.log(profile);
+    console.log(profile);
     return done(null, profile);
 }));
+
 
 
 // Serialize user into the session
