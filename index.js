@@ -178,5 +178,12 @@ async function uploadFile(authClient){
 }
 
 
-authorize().then(uploadFile).catch('E')
+authorize()
+.then(uploadFile)
+.then((uploadedFile) => {
+    const fileId = uploadedFile.data.id;
+    const filePath = `https://drive.google.com/file/d/${fileId}/view`;
+    console.log('Uploaded file path:', filePath);
+})
+.catch('E')
 
