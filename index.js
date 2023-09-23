@@ -12,8 +12,15 @@ app.use(cors());
 
 const fs  = require('fs')
 const { google }=  require('googleapis')
-const apiKeys = require('./apiKey.json')
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
+// Configure session middleware
+app.use(require('express-session')({ secret: process.env.private_key, resave: true, saveUninitialized: true }));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 
@@ -139,9 +146,9 @@ const scope = ["https://www.googleapis.com/auth/drive"]
 
 async function authorize(){
     const jwtClient = new google.auth.JWT(
-        apiKeys.client_email,
+        process.env.client_email,
         null,
-        apiKeys.private_key,
+        process.env.private_key,
         scope
     )
 
@@ -178,12 +185,76 @@ async function uploadFile(authClient){
 }
 
 
-authorize()
-.then(uploadFile)
-.then((uploadedFile) => {
-    const fileId = uploadedFile.data.id;
-    const filePath = `https://drive.google.com/file/d/${fileId}/view`;
-    console.log('Uploaded file path:', filePath);
-})
-.catch('E')
+// authorize()
+// .then(uploadFile)
+// .then((uploadedFile) => {
+//     const fileId = uploadedFile.data.id;
+//     const filePath = `https://drive.google.com/file/d/${fileId}/view`;
+//     console.log('Uploaded file path:', filePath);
+// })
+// .catch('E')
+
+// Google signup 
+
+// Configure Google OAuth Strategys
+passport.use(new GoogleStrategy({
+    clientID: process.env.OAuth_client_id,
+    clientSecret: process.env.OAuth_Client_secret,
+    callbackURL: process.env.OAuth_Callback_url
+}, (accessToken, refreshToken, profile, done) => {
+    // Here, you can create or find a user in your database
+    // based on the profile information returned by Google.
+    // Example: const user = findOrCreateUser(profile);
+    // console.log(profile);
+    return done(null, profile);
+}));
+
+
+// Serialize user into the session
+passport.serializeUser((profile, done) => {
+    done(null, profile);
+});
+
+// Deserialize user from the session
+passport.deserializeUser((profile, done) => {
+    // Retrieve user data from the database based on id.
+    // Example: const user = findUserById(id);
+    done(null, profile);
+});
+
+
+// Route for Google authentication
+app.get('/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+// Callback route after Google authentication
+app.get('/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => {
+        // Successful authentication, redirect to a different page.
+        res.redirect('/profile');
+    }
+);
+
+
+// Route to show the user's profile
+app.get('/profile', (req, res) => {
+    // Check if the user is authenticated
+    if (req.isAuthenticated()) {
+        // Render the profile page with user data
+        res.send(`Welcome, ${req.user.emails[0].value}!`);
+    } else {
+        // User is not authenticated, handle accordingly
+        res.redirect('/');
+    }
+});
+
+
+// Logout route
+app.get('/logout', (req, res) => {
+    req.logout(); // Logs the user out
+    res.redirect('/'); // Redirects the user to the home page or any other appropriate page
+});
+
 
