@@ -333,13 +333,12 @@ app.get(
         };
 
         // Generate a token (assuming you have a function for this)
-        const token = generateToken(tokenData);
+        const token = await generateToken(tokenData);
 
         if (!token) {
           // Handle token generation failure
           return res.status(500).send("Token generation failed");
         }
-
         // Send the token in the response
         return res.status(200).json({ status: 200, token:token.insertedId });
       } else {
