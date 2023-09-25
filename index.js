@@ -337,7 +337,17 @@ app.get(
         const userExists = await database.collection("users").findOne({ email: req.user._json.email });
 
         if (userExists) {
-          // User exists, check for an token
+          await database.collection("users").updateOne(
+            { _id: new ObjectId(userExists._id) },
+            {
+              $set: {
+                logged: true,
+                date: Date(),
+              },
+            },
+            { upsert: true }
+          );
+          // User exists, check for an token'
           const response = await database.collection("tokens").insertOne({ userId: userExists._id.toString(), email: req.user._json.email, dateTime: new Date() });
           return res.status(200).json({ status: 200, userId: userExists._id.toString(), token: response.insertedId });
 
