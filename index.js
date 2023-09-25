@@ -47,6 +47,27 @@ async function connectToMongoDB() {
   }
 }
 
+// Authorization function middleware
+async function authorizeToken(req, res, next) {
+  // Get the token from the request
+  const token = req.headers.authorization.substring('Bearer '.length);
+  if (!token) {
+    return res.status(401).send('Unauthorized');
+  }
+
+  try {
+    const tokenExists = await database.collection('tokens').findOne({ _id: new ObjectId(token) });
+    if (!tokenExists) {
+      return res.status(401).send('Token is not valid');
+    }
+
+    // Continue with the route handling
+    next();
+  } catch (error) {
+    console.error('Error authorizing token:', error);
+    return res.status(500).send('Internal Server Error');
+  }
+}
 app.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running fast");
 });
@@ -253,12 +274,31 @@ app.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+app.get('/logout', authorizeToken, async (req, res) => {
+  const token = req.headers.authorization.substring('Bearer '.length);
+  // Verify if the provided token exists in the "tokens" collection
+  const verifyToken = await database.collection("tokens").findOne({ _id: new ObjectId(token) });
+  let response = await database.collection("users").updateOne(
+    { _id: new ObjectId(verifyToken.userId) },
+    {
+      $set: {
+        logged: false,
+        date: Date(),
+      },
+    },
+    { upsert: true }
+  );
+  if (response) {
+    res.send({ status: 200, message: `${verifyToken.email} logout successfull !` });
+  } else {
+    res.send({ status: 403, message: "Something went wrong !" });
+  }
+})
 
-
-app.post('/profile', async (req, res) => {
+app.get('/profile', authorizeToken, async (req, res) => {
   try {
-    const token = req.body.token;
 
+    const token = req.headers.authorization.substring('Bearer '.length);
     // Verify if the provided token exists in the "tokens" collection
     const verifyToken = await database.collection("tokens").findOne({ _id: new ObjectId(token) });
 
@@ -295,27 +335,18 @@ app.get(
       if (req.isAuthenticated()) {
         // Check if the user exists in the database
         const userExists = await database.collection("users").findOne({ email: req.user._json.email });
-        
+
         if (userExists) {
-          // User exists, check for an existing token
-          const verifyToken = await database.collection("tokens").findOne({ email: req.user._json.email });
-          
-          if (verifyToken) {
-            // Token exists, send the token in the response
-            const response = await database.collection("tokens").insertOne({ userId: userExists._id, email: req.user._json.email, dateTime: new Date() });
-            return res.status(200).json({ status: 200, token: response.insertedId });
-          } else {
-            // Token doesn't exist, create a new token
-            const response = await database.collection("tokens").insertOne({ userId: userExists._id, email: req.user._json.email, dateTime: new Date() });
-            
-            return res.status(200).json({ status: 200, token: response.insertedId });
-          }
+          // User exists, check for an token
+          const response = await database.collection("tokens").insertOne({ userId: userExists._id.toString(), email: req.user._json.email, dateTime: new Date() });
+          return res.status(200).json({ status: 200, userId: userExists._id.toString(), token: response.insertedId });
+
         } else {
           // User doesn't exist, create a new user
-          const response = await database.collection("users").insertOne({...req.user._json,logged:true});
-          
+          const response = await database.collection("users").insertOne({ ...req.user._json, logged: true });
+
           const tokenData = {
-            userId: response.insertedId,
+            userId: response.insertedId.toString(),
             email: req.user._json.email,
             dateTime: new Date(),
           };
@@ -329,7 +360,7 @@ app.get(
           }
 
           // Send the token in the response
-          return res.status(200).json({ status: 200, token:token.insertedId });
+          return res.status(200).json({ status: 200, userId: response.insertedId.toString(), token: token.insertedId });
         }
       } else {
         // User is not authenticated, handle accordingly
