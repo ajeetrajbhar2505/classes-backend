@@ -40,7 +40,7 @@ async function connectToMongoDB() {
   try {
     database = client.db("class"); // Specify the database name
     if (database) {
-        console.log('database connected!');
+      console.log('database connected!');
     }
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
@@ -157,7 +157,7 @@ async function uploadFile(authClient, fileInfo) {
         media: {
           mimeType: fileInfo.mimetype,
           body: fs.createReadStream(
-            `${uploadDirectory + fileInfo.originalname}`
+            `${uploadDirectory + fileInfo.filename}`
           ),
         },
         fields: "id",
@@ -182,7 +182,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     // Use the current timestamp as a unique file name.
-    cb(null, file.originalname);
+    cb(null, Date.now() + file.originalname);
   },
 });
 
@@ -213,7 +213,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-app.post("/upsertContentDetails", async (req, res) => {});
+app.post("/upsertContentDetails", async (req, res) => { });
 
 // Google signup
 // Configure Google OAuth Strategys
@@ -224,14 +224,24 @@ passport.use(
       clientSecret: process.env.OAuth_Client_secret,
       callbackURL: process.env.OAuth_Callback_url,
     },
-    (accessToken, refreshToken, profile, done) => {
+   async (accessToken, refreshToken, profile, done) => {
       // Here, you can create or find a user in your database
       // based on the profile information returned by Google.
       // Example: const user = findOrCreateUser(profile);
+      await findOrCreateUser(profile);
       return done(null, profile);
     }
   )
 );
+
+
+async function findOrCreateUser(profile) {
+  let userExists = await database.collection("users").findOne({ email: profile._json.email });
+  if (!userExists) {
+    await database.collection("users").insertOne(profile._json, { logged: true });
+  }
+
+}
 
 // Serialize user into the session
 passport.serializeUser((profile, done) => {
@@ -255,20 +265,53 @@ app.get(
 app.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
-  (req, res) => {
-    // Successful authentication, redirect to a different page.
-    res.redirect("/profile");
+  async (req, res) => {
+    try {
+      if (req.isAuthenticated()) {
+        // Successful authentication, generate a token and send it in the response
+        const response = await database.collection("users").findOne({ email: req.user._json.email });
+
+        if (!response) {
+          // Handle case where user doesn't exist in the database
+          return res.status(404).send("User not found");
+        }
+
+        const tokenData = {
+          userId: response._id,
+          email: req.user._json.email,
+          dateTime: new Date(),
+        };
+
+        // Assuming you have a function to generate tokens
+        const token = generateToken(tokenData);
+        // Redirect to a different page or send the token in the response
+        if (req.isAuthenticated() && token) {
+          res.send({ user: response, token: token.insertedId });
+        }
+        else {
+          return res.status(404).send("User not found");
+        }
+      } else {
+        // User is not authenticated, handle accordingly
+        return res.status(404).send("User not found");
+      }
+    } catch (error) {
+      // Handle any errors that may occur during token generation or database operations
+      console.error("Error in Google callback:", error);
+      res.status(500).send("Internal Server Error");
+    }
   }
 );
 
-// Route to show the user's profile
-app.get("/profile", (req, res) => {
-  // Check if the user is authenticated
-  if (req.isAuthenticated()) {
-    // Render the profile page with user data
-    res.send(`Welcome, ${req.user.emails[0].value}!`);
-  } else {
-    // User is not authenticated, handle accordingly
-    res.redirect("/");
-  }
-});
+
+
+// Function to generate a JWT token (you should implement this)
+async function generateToken(tokenData) {
+  // Store the token in your database if needed
+  return await database.collection("tokens").insertOne({
+    userId: tokenData.userId,
+    email: tokenData.email,
+    dateTime: tokenData.dateTime,
+  });
+}
+
