@@ -278,6 +278,8 @@ app.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+
+
 app.post('/profile', async (req, res) => {
   try {
     const token = req.body.token;
@@ -339,7 +341,7 @@ app.get(
         }
 
         // Send the token in the response
-        return res.status(200).json({ status: 200, token });
+        return res.status(200).json({ status: 200, token:token.insertedId });
       } else {
         // User is not authenticated, handle accordingly
         return res.status(401).send("User not authenticated");
