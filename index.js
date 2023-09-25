@@ -224,7 +224,7 @@ passport.use(
       clientSecret: process.env.OAuth_Client_secret,
       callbackURL: process.env.OAuth_Callback_url,
     },
-   async (accessToken, refreshToken, profile, done) => {
+    async (accessToken, refreshToken, profile, done) => {
       // Here, you can create or find a user in your database
       // based on the profile information returned by Google.
       // Example: const user = findOrCreateUser(profile);
@@ -261,6 +261,37 @@ app.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+app.post('/profile', async (req, res) => {
+  try {
+    const token = req.body.token;
+
+    // Verify if the provided token exists in the "tokens" collection
+    const verifyToken = await database.collection("tokens").findOne({ _id: new ObjectId(token) });
+
+    if (verifyToken) {
+      // Token is valid; retrieve user data based on the token's userId
+      const userId = verifyToken.userId;
+      const userResponse = await database.collection("users").findOne({ _id: new ObjectId(userId) });
+
+      if (userResponse) {
+        // User found; send the user's data in the response
+        res.status(200).send({ status: 200, response: userResponse });
+      } else {
+        // User not found; return a 404 response
+        res.status(404).send("User not found");
+      }
+    } else {
+      // Token not valid; return a 404 response
+      res.status(404).send("Token not valid");
+    }
+  } catch (error) {
+    // Handle any errors that may occur during database operations
+    console.error("Error in /profile route:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
 // Callback route after Google authentication
 app.get(
   "/google/callback",
@@ -268,7 +299,7 @@ app.get(
   async (req, res) => {
     try {
       if (req.isAuthenticated()) {
-        // Successful authentication, generate a token and send it in the response
+        // Successful authentication, generate a token
         const response = await database.collection("users").findOne({ email: req.user._json.email });
 
         if (!response) {
@@ -282,36 +313,44 @@ app.get(
           dateTime: new Date(),
         };
 
-        // Assuming you have a function to generate tokens
+        // Generate a token (assuming you have a function for this)
         const token = generateToken(tokenData);
-        // Redirect to a different page or send the token in the response
-        if (req.isAuthenticated() && token) {
-          res.send({ user: response, token: token.insertedId });
+
+        if (!token) {
+          // Handle token generation failure
+          return res.status(500).send("Token generation failed");
         }
-        else {
-          return res.status(404).send("User not found");
-        }
+
+        // Send the token in the response
+        return res.status(200).json({ status: 200, token });
       } else {
         // User is not authenticated, handle accordingly
-        return res.status(404).send("User not found");
+        return res.status(401).send("User not authenticated");
       }
     } catch (error) {
       // Handle any errors that may occur during token generation or database operations
       console.error("Error in Google callback:", error);
-      res.status(500).send("Internal Server Error");
+      return res.status(500).send("Internal Server Error");
     }
   }
 );
 
 
 
+
+
 // Function to generate a JWT token (you should implement this)
 async function generateToken(tokenData) {
   // Store the token in your database if needed
-  return await database.collection("tokens").insertOne({
-    userId: tokenData.userId,
-    email: tokenData.email,
-    dateTime: tokenData.dateTime,
-  });
+  try {
+    return await database.collection("tokens").insertOne({
+      userId: tokenData.userId,
+      email: tokenData.email,
+      dateTime: tokenData.dateTime,
+    });
+  } catch (error) {
+    throw error
+  }
+
 }
 
