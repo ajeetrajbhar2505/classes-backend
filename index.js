@@ -226,14 +226,6 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        // Check if the user already exists in the database
-        const userExists = await database.collection("users").findOne({ email: profile._json.email });
-
-        if (!userExists) {
-          // If the user doesn't exist, create a new user based on the Google profile
-          await createUserFromGoogleProfile(profile);
-        }
-
         return done(null, profile);
       } catch (error) {
         console.error("Error in Google OAuth strategy:", error);
@@ -242,23 +234,6 @@ passport.use(
     }
   )
 );
-
-async function createUserFromGoogleProfile(profile) {
-  try {
-    // Extract relevant user data from the Google profile
-    const userData = {
-      email: profile._json.email,
-      // Add more fields as needed based on your user schema
-    };
-
-    // Insert the new user into the database
-    await database.collection("users").insertOne(userData, { logged: true });
-  } catch (error) {
-    console.error("Error creating user from Google profile:", error);
-    throw error; // Handle the error as needed, e.g., return a default value or throw an exception
-  }
-}
-
 
 // Serialize user into the session
 passport.serializeUser((profile, done) => {
@@ -318,29 +293,44 @@ app.get(
   async (req, res) => {
     try {
       if (req.isAuthenticated()) {
-        // Successful authentication, generate a token
-        const response = await database.collection("users").findOne({ email: req.user._json.email });
+        // Check if the user exists in the database
+        const userExists = await database.collection("users").findOne({ email: req.user._json.email });
+        
+        if (userExists) {
+          // User exists, check for an existing token
+          const verifyToken = await database.collection("tokens").findOne({ email: req.user._json.email });
+          
+          if (verifyToken) {
+            // Token exists, send the token in the response
+            const response = await database.collection("tokens").insertOne({ userId: userExists._id, email: req.user._json.email, dateTime: new Date() });
+            return res.status(200).json({ status: 200, token: response.insertedId });
+          } else {
+            // Token doesn't exist, create a new token
+            const response = await database.collection("tokens").insertOne({ userId: userExists._id, email: req.user._json.email, dateTime: new Date() });
+            
+            return res.status(200).json({ status: 200, token: response.insertedId });
+          }
+        } else {
+          // User doesn't exist, create a new user
+          const response = await database.collection("users").insertOne({...req.user._json,logged:true});
+          
+          const tokenData = {
+            userId: response.insertedId,
+            email: req.user._json.email,
+            dateTime: new Date(),
+          };
 
-        if (!response) {
-          // Handle case where user doesn't exist in the database
-          return res.status(404).send("User not found");
+          // Generate a token (assuming you have a function for this)
+          const token = await generateToken(tokenData);
+
+          if (!token) {
+            // Handle token generation failure
+            return res.status(500).send("Token generation failed");
+          }
+
+          // Send the token in the response
+          return res.status(200).json({ status: 200, token:token.insertedId });
         }
-
-        const tokenData = {
-          userId: response._id,
-          email: req.user._json.email,
-          dateTime: new Date(),
-        };
-
-        // Generate a token (assuming you have a function for this)
-        const token = await generateToken(tokenData);
-
-        if (!token) {
-          // Handle token generation failure
-          return res.status(500).send("Token generation failed");
-        }
-        // Send the token in the response
-        return res.status(200).json({ status: 200, token:token.insertedId });
       } else {
         // User is not authenticated, handle accordingly
         return res.status(401).send("User not authenticated");
