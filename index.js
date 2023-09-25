@@ -216,7 +216,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 app.post("/upsertContentDetails", async (req, res) => { });
 
 // Google signup
-// Configure Google OAuth Strategys
+// Configure Google OAuth Strategy
 passport.use(
   new GoogleStrategy(
     {
@@ -225,23 +225,40 @@ passport.use(
       callbackURL: process.env.OAuth_Callback_url,
     },
     async (accessToken, refreshToken, profile, done) => {
-      // Here, you can create or find a user in your database
-      // based on the profile information returned by Google.
-      // Example: const user = findOrCreateUser(profile);
-      await findOrCreateUser(profile);
-      return done(null, profile);
+      try {
+        // Check if the user already exists in the database
+        const userExists = await database.collection("users").findOne({ email: profile._json.email });
+
+        if (!userExists) {
+          // If the user doesn't exist, create a new user based on the Google profile
+          await createUserFromGoogleProfile(profile);
+        }
+
+        return done(null, profile);
+      } catch (error) {
+        console.error("Error in Google OAuth strategy:", error);
+        return done(error);
+      }
     }
   )
 );
 
+async function createUserFromGoogleProfile(profile) {
+  try {
+    // Extract relevant user data from the Google profile
+    const userData = {
+      email: profile._json.email,
+      // Add more fields as needed based on your user schema
+    };
 
-async function findOrCreateUser(profile) {
-  let userExists = await database.collection("users").findOne({ email: profile._json.email });
-  if (!userExists) {
-    await database.collection("users").insertOne(profile._json, { logged: true });
+    // Insert the new user into the database
+    await database.collection("users").insertOne(userData, { logged: true });
+  } catch (error) {
+    console.error("Error creating user from Google profile:", error);
+    throw error; // Handle the error as needed, e.g., return a default value or throw an exception
   }
-
 }
+
 
 // Serialize user into the session
 passport.serializeUser((profile, done) => {
