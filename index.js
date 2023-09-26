@@ -50,6 +50,9 @@ async function connectToMongoDB() {
 // Authorization function middleware
 async function authorizeToken(req, res, next) {
   // Get the token from the request
+  if (!req.headers.authorization) {
+   return res.status(403).send("Permission Denied"); // You can choose an appropriate HTTP status code and error message
+  }
   const token = req.headers.authorization.substring('Bearer '.length);
   if (!token) {
     return res.status(401).send('Unauthorized');
@@ -72,14 +75,14 @@ app.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running fast");
 });
 
-app.get("/classDetails", async (req, res) => {
+app.get("/classDetails",authorizeToken, async (req, res) => {
   let response = await database.collection("classDetails").find({}).toArray();
   if (response) {
     res.send(response);
   }
 });
 
-app.get("/lectureDetails/:classId", async (req, res) => {
+app.get("/lectureDetails/:classId",authorizeToken, async (req, res) => {
   const { classId } = req.params;
   let response = await database
     .collection("lectureDetails")
@@ -90,7 +93,7 @@ app.get("/lectureDetails/:classId", async (req, res) => {
   }
 });
 
-app.get("/contentDetails/:classId/:lec_id", async (req, res) => {
+app.get("/contentDetails/:classId/:lec_id",authorizeToken, async (req, res) => {
   const { classId, lec_id } = req.params;
   let response = await database
     .collection("contentDetails")
@@ -125,7 +128,7 @@ io.on("connection", (socket) => {
   });
 });
 
-app.post("/live", async (req, res) => {
+app.post("/live",authorizeToken, async (req, res) => {
   const { lec_id, live } = req.body;
   let response = await database.collection("contentDetails").updateOne(
     { _id: new ObjectId(lec_id) },
@@ -211,7 +214,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Route to handle file upload
-app.post("/upload", upload.single("file"), async (req, res) => {
+app.post("/upload", upload.single("file"),authorizeToken, async (req, res) => {
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
   }
@@ -234,7 +237,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-app.post("/upsertContentDetails", async (req, res) => { });
+app.post("/upsertContentDetails",authorizeToken, async (req, res) => { });
 
 // Google signup
 // Configure Google OAuth Strategy
@@ -274,7 +277,7 @@ app.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-app.get('/logout', authorizeToken, async (req, res) => {
+app.get('/logout', authorizeToken,authorizeToken, async (req, res) => {
   const token = req.headers.authorization.substring('Bearer '.length);
   // Verify if the provided token exists in the "tokens" collection
   const verifyToken = await database.collection("tokens").findOne({ _id: new ObjectId(token) });
@@ -295,7 +298,7 @@ app.get('/logout', authorizeToken, async (req, res) => {
   }
 })
 
-app.get('/profile', authorizeToken, async (req, res) => {
+app.get('/profile', authorizeToken,authorizeToken, async (req, res) => {
   try {
 
     const token = req.headers.authorization.substring('Bearer '.length);
@@ -330,7 +333,7 @@ app.get('/profile', authorizeToken, async (req, res) => {
 app.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
-  async (req, res) => {
+ authorizeToken, async (req, res) => {
     try {
       if (req.isAuthenticated()) {
         // Check if the user exists in the database
