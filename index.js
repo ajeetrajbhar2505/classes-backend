@@ -17,6 +17,11 @@ const { google } = require("googleapis");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
+
+// Serve static files from the 'public' directory
+app.use(express.static(__dirname + '/public'));
+
+
 // Configure session middleware
 app.use(
   require("express-session")({
@@ -51,7 +56,7 @@ async function connectToMongoDB() {
 async function authorizeToken(req, res, next) {
   // Get the token from the request
   if (!req.headers.authorization) {
-   return res.status(403).send("Permission Denied"); // You can choose an appropriate HTTP status code and error message
+  return  res.sendFile(__dirname + '/public/index.html');
   }
   const token = req.headers.authorization.substring('Bearer '.length);
   if (!token) {
