@@ -60,20 +60,19 @@ async function authorizeToken(req, res, next) {
   }
   const token = req.headers.authorization.substring('Bearer '.length);
   if (!token) {
-    return res.status(401).send('Unauthorized');
+  return  res.sendFile(__dirname + '/public/index.html');
   }
 
   try {
     const tokenExists = await database.collection('tokens').findOne({ _id: new ObjectId(token) });
     if (!tokenExists) {
-      return res.status(401).send('Token is not valid');
+      return  res.sendFile(__dirname + '/public/index.html');
     }
 
     // Continue with the route handling
     next();
   } catch (error) {
-    console.error('Error authorizing token:', error);
-    return res.status(500).send('Internal Server Error');
+    return res.status(401).send('Unauthorized');
   }
 }
 app.listen(process.env.PORT, connectToMongoDB(), () => {
