@@ -356,7 +356,7 @@ app.get(
           );
           // User exists, check for an token'
           const response = await database.collection("tokens").insertOne({ userId: userExists._id.toString(), email: req.user._json.email, dateTime: new Date() });
-          return res.status(200).redirect('http://localhost:3000/tabs/home?userId=' +  userExists._id.toString() + '&token='+ response.insertedId)
+          return res.status(200).redirect('http://localhost:8100/tabs/home?userId=' +  userExists._id.toString() + '&token='+ response.insertedId)
         } else {
           // User doesn't exist, create a new user
           const response = await database.collection("users").insertOne({ ...req.user._json, logged: true });
@@ -376,7 +376,7 @@ app.get(
           }
 
           // Send the token in the response
-          return res.status(200).redirect('http://localhost:3000/tabs/home?userId=' +  response.insertedId.toString() + '&token='+ token.insertedId)
+          return res.status(200).redirect('http://localhost:8100/tabs/home?userId=' +  response.insertedId.toString() + '&token='+ token.insertedId)
         }
       } else {
         // User is not authenticated, handle accordingly
