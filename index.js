@@ -82,7 +82,7 @@ app.listen(process.env.PORT, connectToMongoDB(), () => {
 app.get("/classDetails",authorizeToken, async (req, res) => {
   let response = await database.collection("classDetails").find({}).toArray();
   if (response) {
-    res.send(response);
+    res.send({status : 200,response : response});
   }
 });
 
@@ -93,7 +93,7 @@ app.get("/lectureDetails/:classId",authorizeToken, async (req, res) => {
     .find({ classId: classId })
     .toArray();
   if (response) {
-    res.send(response);
+    res.send({status : 200,response : response});
   }
 });
 
@@ -104,7 +104,7 @@ app.get("/contentDetails/:classId/:lec_id",authorizeToken, async (req, res) => {
     .find({ classId: classId, lec_id: lec_id })
     .toArray();
   if (response) {
-    res.send(response);
+    res.send({status : 200,response : response});
   }
 });
 
@@ -336,8 +336,7 @@ app.get('/profile', authorizeToken,authorizeToken, async (req, res) => {
 // Callback route after Google authentication
 app.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/" }),
- authorizeToken, async (req, res) => {
+  passport.authenticate("google", { failureRedirect: "/" }), async (req, res) => {
     try {
       if (req.isAuthenticated()) {
         // Check if the user exists in the database
