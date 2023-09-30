@@ -17,10 +17,8 @@ const { google } = require("googleapis");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
-
 // Serve static files from the 'public' directory
-app.use(express.static(__dirname + '/public'));
-
+app.use(express.static(__dirname + "/public"));
 
 // Configure session middleware
 app.use(
@@ -45,7 +43,7 @@ async function connectToMongoDB() {
   try {
     database = client.db("class"); // Specify the database name
     if (database) {
-      console.log('database connected!');
+      console.log("database connected!");
     }
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
@@ -56,57 +54,85 @@ async function connectToMongoDB() {
 async function authorizeToken(req, res, next) {
   // Get the token from the request
   if (!req.headers.authorization) {
-  return  res.sendFile(__dirname + '/public/index.html');
+    return res.sendFile(__dirname + "/public/index.html");
   }
-  const token = req.headers.authorization.substring('Bearer '.length);
+  const token = req.headers.authorization.substring("Bearer ".length);
   if (!token) {
-  return  res.sendFile(__dirname + '/public/index.html');
+    return res.sendFile(__dirname + "/public/index.html");
   }
 
   try {
-    const tokenExists = await database.collection('tokens').findOne({ _id: new ObjectId(token) });
+    const tokenExists = await database
+      .collection("tokens")
+      .findOne({ _id: new ObjectId(token) });
     if (!tokenExists) {
-      return  res.sendFile(__dirname + '/public/index.html');
+      return res.sendFile(__dirname + "/public/index.html");
     }
 
     // Continue with the route handling
     next();
   } catch (error) {
-    return res.status(401).send('Unauthorized');
+    return res.status(401).send("Unauthorized");
   }
 }
 app.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running fast");
 });
 
-app.get("/classDetails",authorizeToken, async (req, res) => {
+app.get("/classDetails", authorizeToken, async (req, res) => {
   let response = await database.collection("classDetails").find({}).toArray();
   if (response) {
-    res.send({status : 200,response : response});
+    res.send({ status: 200, response: response });
   }
 });
 
-app.get("/lectureDetails/:classId",authorizeToken, async (req, res) => {
+app.get("/mostWatched", authorizeToken, async (req, res) => {
+  let response = await database.collection("contentDetails").find({}).toArray();
+  if (response) {
+    res.send({ status: 200, response: response });
+  }
+});
+
+app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
   const { classId } = req.params;
   let response = await database
     .collection("lectureDetails")
     .find({ classId: classId })
     .toArray();
   if (response) {
-    res.send({status : 200,response : response});
+    res.send({ status: 200, response: response });
   }
 });
 
-app.get("/contentDetails/:classId/:lec_id",authorizeToken, async (req, res) => {
-  const { classId, lec_id } = req.params;
-  let response = await database
-    .collection("contentDetails")
-    .find({ classId: classId, lec_id: lec_id })
-    .toArray();
-  if (response) {
-    res.send({status : 200,response : response});
+app.get(
+  "/contentDetails/:classId/:lec_id",
+  authorizeToken,
+  async (req, res) => {
+    const { classId, lec_id } = req.params;
+    let response = await database
+      .collection("contentDetails")
+      .find({ classId: classId, lec_id: lec_id })
+      .toArray();
+    if (response) {
+      res.send({ status: 200, response: response });
+    }
   }
-});
+);
+
+app.get(
+  "/content/:classId/:lec_id/:content_id",
+  authorizeToken,
+  async (req, res) => {
+    const { classId, lec_id, content_id } = req.params;
+    let response = await database
+      .collection("contentDetails")
+      .find({ _id: new ObjectId(content_id) })
+      .toArray();
+    if (response) {
+      res.send({ status: 200, response: response });
+    }
+  }
+);
 
 // Integrate Server
 const server = http.createServer(app);
@@ -132,7 +158,7 @@ io.on("connection", (socket) => {
   });
 });
 
-app.post("/live",authorizeToken, async (req, res) => {
+app.post("/live", authorizeToken, async (req, res) => {
   const { lec_id, live } = req.body;
   let response = await database.collection("contentDetails").updateOne(
     { _id: new ObjectId(lec_id) },
@@ -184,9 +210,7 @@ async function uploadFile(authClient, fileInfo) {
         resource: fileMetaData,
         media: {
           mimeType: fileInfo.mimetype,
-          body: fs.createReadStream(
-            `${uploadDirectory + fileInfo.filename}`
-          ),
+          body: fs.createReadStream(`${uploadDirectory + fileInfo.filename}`),
         },
         fields: "id",
       },
@@ -218,7 +242,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Route to handle file upload
-app.post("/upload", upload.single("file"),authorizeToken, async (req, res) => {
+app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
   }
@@ -241,7 +265,7 @@ app.post("/upload", upload.single("file"),authorizeToken, async (req, res) => {
   }
 });
 
-app.post("/upsertContentDetails",authorizeToken, async (req, res) => { });
+app.post("/upsertContentDetails", authorizeToken, async (req, res) => {});
 
 // Google signup
 // Configure Google OAuth Strategy
@@ -281,10 +305,12 @@ app.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-app.get('/logout', authorizeToken,authorizeToken, async (req, res) => {
-  const token = req.headers.authorization.substring('Bearer '.length);
+app.get("/logout", authorizeToken, authorizeToken, async (req, res) => {
+  const token = req.headers.authorization.substring("Bearer ".length);
   // Verify if the provided token exists in the "tokens" collection
-  const verifyToken = await database.collection("tokens").findOne({ _id: new ObjectId(token) });
+  const verifyToken = await database
+    .collection("tokens")
+    .findOne({ _id: new ObjectId(token) });
   let response = await database.collection("users").updateOne(
     { _id: new ObjectId(verifyToken.userId) },
     {
@@ -296,23 +322,29 @@ app.get('/logout', authorizeToken,authorizeToken, async (req, res) => {
     { upsert: true }
   );
   if (response) {
-    res.send({ status: 200, message: `${verifyToken.email} logout successfull !` });
+    res.send({
+      status: 200,
+      message: `${verifyToken.email} logout successfull !`,
+    });
   } else {
     res.send({ status: 403, message: "Something went wrong !" });
   }
-})
+});
 
-app.get('/profile', authorizeToken,authorizeToken, async (req, res) => {
+app.get("/profile", authorizeToken, authorizeToken, async (req, res) => {
   try {
-
-    const token = req.headers.authorization.substring('Bearer '.length);
+    const token = req.headers.authorization.substring("Bearer ".length);
     // Verify if the provided token exists in the "tokens" collection
-    const verifyToken = await database.collection("tokens").findOne({ _id: new ObjectId(token) });
+    const verifyToken = await database
+      .collection("tokens")
+      .findOne({ _id: new ObjectId(token) });
 
     if (verifyToken) {
       // Token is valid; retrieve user data based on the token's userId
       const userId = verifyToken.userId;
-      const userResponse = await database.collection("users").findOne({ _id: new ObjectId(userId) });
+      const userResponse = await database
+        .collection("users")
+        .findOne({ _id: new ObjectId(userId) });
 
       if (userResponse) {
         // User found; send the user's data in the response
@@ -332,15 +364,17 @@ app.get('/profile', authorizeToken,authorizeToken, async (req, res) => {
   }
 });
 
-
 // Callback route after Google authentication
 app.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/" }), async (req, res) => {
+  passport.authenticate("google", { failureRedirect: "/" }),
+  async (req, res) => {
     try {
       if (req.isAuthenticated()) {
         // Check if the user exists in the database
-        const userExists = await database.collection("users").findOne({ email: req.user._json.email });
+        const userExists = await database
+          .collection("users")
+          .findOne({ email: req.user._json.email });
 
         if (userExists) {
           await database.collection("users").updateOne(
@@ -354,11 +388,26 @@ app.get(
             { upsert: true }
           );
           // User exists, check for an token'
-          const response = await database.collection("tokens").insertOne({ userId: userExists._id.toString(), email: req.user._json.email, dateTime: new Date() });
-          return res.status(200).redirect('http://localhost:8100/tabs/home?userId=' +  userExists._id.toString() + '&token='+ response.insertedId)
+          const response = await database
+            .collection("tokens")
+            .insertOne({
+              userId: userExists._id.toString(),
+              email: req.user._json.email,
+              dateTime: new Date(),
+            });
+          return res
+            .status(200)
+            .redirect(
+              "http://localhost:8100/tabs/home?userId=" +
+                userExists._id.toString() +
+                "&token=" +
+                response.insertedId
+            );
         } else {
           // User doesn't exist, create a new user
-          const response = await database.collection("users").insertOne({ ...req.user._json, logged: true });
+          const response = await database
+            .collection("users")
+            .insertOne({ ...req.user._json, logged: true });
 
           const tokenData = {
             userId: response.insertedId.toString(),
@@ -375,7 +424,14 @@ app.get(
           }
 
           // Send the token in the response
-          return res.status(200).redirect('http://localhost:8100/tabs/home?userId=' +  response.insertedId.toString() + '&token='+ token.insertedId)
+          return res
+            .status(200)
+            .redirect(
+              "http://localhost:8100/tabs/home?userId=" +
+                response.insertedId.toString() +
+                "&token=" +
+                token.insertedId
+            );
         }
       } else {
         // User is not authenticated, handle accordingly
@@ -389,10 +445,6 @@ app.get(
   }
 );
 
-
-
-
-
 // Function to generate a JWT token (you should implement this)
 async function generateToken(tokenData) {
   // Store the token in your database if needed
@@ -403,8 +455,6 @@ async function generateToken(tokenData) {
       dateTime: tokenData.dateTime,
     });
   } catch (error) {
-    throw error
+    throw error;
   }
-
 }
-
