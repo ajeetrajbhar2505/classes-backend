@@ -87,7 +87,7 @@ app.get("/classDetails", authorizeToken, async (req, res) => {
 });
 
 app.get("/mostWatched", authorizeToken, async (req, res) => {
-  let response = await database.collection("contentDetails").find({}).toArray();
+  let response = await database.collection("lectureDetails").find({}).toArray();
   if (response) {
     res.send({ status: 200, response: response });
   }
@@ -127,6 +127,21 @@ app.get(
     let response = await database
       .collection("contentDetails")
       .find({ _id: new ObjectId(content_id) })
+      .toArray();
+    if (response) {
+      res.send({ status: 200, response: response });
+    }
+  }
+);
+
+app.get(
+  "/contentDetails",
+  authorizeToken,
+  async (req, res) => {
+    const { classId, lec_id, content_id } = req.params;
+    let response = await database
+      .collection("contentDetails")
+      .find({})
       .toArray();
     if (response) {
       res.send({ status: 200, response: response });
@@ -398,9 +413,9 @@ app.get(
           return res
             .status(200)
             .redirect(
-              "http://localhost:8100/tabs/home?userId=" +
+              "http://localhost:8100/sucessfull/" +
                 userExists._id.toString() +
-                "&token=" +
+                "/" +
                 response.insertedId
             );
         } else {
@@ -427,9 +442,9 @@ app.get(
           return res
             .status(200)
             .redirect(
-              "http://localhost:8100/tabs/home?userId=" +
+              "http://localhost:8100/sucessfull/" +
                 response.insertedId.toString() +
-                "&token=" +
+                "/" +
                 token.insertedId
             );
         }
