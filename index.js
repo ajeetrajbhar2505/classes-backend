@@ -134,20 +134,42 @@ app.get(
   }
 );
 
-app.get(
-  "/contentDetails",
-  authorizeToken,
-  async (req, res) => {
-    const { classId, lec_id, content_id } = req.params;
-    let response = await database
-      .collection("contentDetails")
-      .find({})
+app.get("/contentDetails", authorizeToken, async (req, res) => {
+  const { classId, lec_id, content_id } = req.params;
+  let response = await database.collection("contentDetails").find({}).toArray();
+  if (response) {
+    res.send({ status: 200, response: response });
+  }
+});
+app.get("/calenderDetails/:desiredMonth", authorizeToken, async (req, res) => {
+  const { desiredMonth } = req.params;
+  try {
+    const response = await database
+      .collection("calenderDetails")
+      .find({ month: desiredMonth })
       .toArray();
+
+    res.send({ status: 200, response: response });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ status: 500, message: "Internal Server Error" });
+  }
+});
+
+app.post("/upsertCalenderDetails", authorizeToken, async (req, res) => {
+  try {
+    let response = await database
+      .collection("calenderDetails")
+      .insertOne(req.body);
     if (response) {
       res.send({ status: 200, response: response });
+    } else {
+      res.send({ status: 200, response: "Something went wrong" });
     }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
   }
-);
+});
 
 // Integrate Server
 const server = http.createServer(app);
@@ -403,13 +425,11 @@ app.get(
             { upsert: true }
           );
           // User exists, check for an token'
-          const response = await database
-            .collection("tokens")
-            .insertOne({
-              userId: userExists._id.toString(),
-              email: req.user._json.email,
-              dateTime: new Date(),
-            });
+          const response = await database.collection("tokens").insertOne({
+            userId: userExists._id.toString(),
+            email: req.user._json.email,
+            dateTime: new Date(),
+          });
           return res
             .status(200)
             .redirect(
