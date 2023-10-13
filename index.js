@@ -288,7 +288,7 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
     const authClient = await authorize(); // Implement your authorization logic here
     const uploadedFile = await uploadFile(authClient, req.file);
     const fileId = uploadedFile.data.id;
-    const filePath = `https://drive.google.com/file/d/${fileId}/preview`;
+    const filePath = `https://drive.google.com/uc?id=${fileId}`;
     const body = { ...req.body, content_link: filePath };
     let response = await database.collection("contentDetails").insertOne(body);
     if (response) {
