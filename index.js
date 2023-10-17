@@ -176,6 +176,103 @@ app.post("/upsertCalenderDetails", authorizeToken, async (req, res) => {
   }
 });
 
+
+app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
+  const { contentId } = req.params;
+  try {
+    const response = await database
+      .collection("Querries")
+      .find({ contentId: contentId })
+      .toArray();
+
+    res.send({ status: 200, response: response });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ status: 500, message: "Internal Server Error" });
+  }
+});
+
+app.post("/upsertUserQuerries", authorizeToken, async (req, res) => {
+  try {
+    const body = req.body
+    const token = req.headers.authorization.substring("Bearer ".length);
+    // Verify if the provided token exists in the "tokens" collection
+    const verifyToken = await database
+      .collection("tokens")
+      .findOne({ _id: new ObjectId(token) });
+  
+    if (verifyToken) {
+      // Token is valid; retrieve user data based on the token's userId
+      const userId = verifyToken.userId;
+      const userResponse = await database
+        .collection("users")
+        .findOne({ _id: new ObjectId(userId) });
+           // Create an author object
+      const author = {
+        author: userResponse.given_name + " " + userResponse.family_name,
+        authorId: userId,
+        authorProfile : userResponse.picture,
+        date: Date(),
+      };
+    
+      // Merge the author object with the body
+      Object.assign(body, author);
+    }
+
+    let response = await database
+      .collection("Querries")
+      .insertOne(body);
+    if (response) {
+      res.send({ status: 200, response: response });
+    } else {
+      res.send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
+
+app.post("/upsertTeacherResponse", authorizeToken, async (req, res) => {
+  const body = req.body
+
+  const token = req.headers.authorization.substring("Bearer ".length);
+  // Verify if the provided token exists in the "tokens" collection
+  const verifyToken = await database
+    .collection("tokens")
+    .findOne({ _id: new ObjectId(token) });
+
+  if (verifyToken) {
+    // Token is valid; retrieve user data based on the token's userId
+    const userId = verifyToken.userId;
+    const userResponse = await database
+      .collection("users")
+      .findOne({ _id: new ObjectId(userId) });
+         // Create an author object
+    const author = {
+      teacher: userResponse.given_name + " " + userResponse.family_name,
+      teacherId: userId,
+      responseDate: Date(),
+    };
+  
+    // Merge the author object with the body
+    Object.assign(body, author);
+  }
+  let response = await database.collection("Querries").updateOne(
+    { _id: new ObjectId(id) },
+    {
+      $set: {body},
+    },
+    { upsert: true }
+  );
+  if (response) {
+    res.send({ status: 200, message: "Content gone live successfull !" });
+  } else {
+    res.send({ status: 403, message: "Something went wrong !" });
+  }
+});
+
+
 // Integrate Server
 const server = http.createServer(app);
 const { Server } = require("socket.io");
