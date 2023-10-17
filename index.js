@@ -222,7 +222,7 @@ app.post("/upsertUserQuerries", authorizeToken, async (req, res) => {
       .collection("Querries")
       .insertOne(body);
 
-     Object.assign(body, {id : response.insertedId.toString()});
+     Object.assign(body, {_id : response.insertedId.toString()});
      io.emit(body.contentId, body)
 
     if (response) {
