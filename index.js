@@ -267,7 +267,6 @@ app.post("/upsertTeacherResponse", authorizeToken, async (req, res) => {
     },
     { upsert: true }
   );
-  console.log(response);
 
   if (response.modifiedCount === 1) {
     // Document was successfully updated
