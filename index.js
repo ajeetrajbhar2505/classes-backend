@@ -176,7 +176,6 @@ app.post("/upsertCalenderDetails", authorizeToken, async (req, res) => {
   }
 });
 
-
 app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
   const { contentId } = req.params;
   try {
@@ -194,38 +193,38 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
 
 app.post("/upsertUserQuerries", authorizeToken, async (req, res) => {
   try {
-    const body = req.body
+    const body = req.body;
     const token = req.headers.authorization.substring("Bearer ".length);
     // Verify if the provided token exists in the "tokens" collection
     const verifyToken = await database
       .collection("tokens")
       .findOne({ _id: new ObjectId(token) });
-  
+
     if (verifyToken) {
       // Token is valid; retrieve user data based on the token's userId
       const userId = verifyToken.userId;
       const userResponse = await database
         .collection("users")
         .findOne({ _id: new ObjectId(userId) });
-           // Create an author object
+      // Create an author object
       const author = {
         author: userResponse.given_name + " " + userResponse.family_name,
         authorId: userId,
-        authorProfile : userResponse.picture,
+        authorProfile: userResponse.picture,
         date: Date(),
       };
-    
+
       // Merge the author object with the body
       Object.assign(body, author);
     }
-    let response = await database
-      .collection("Querries")
-      .insertOne(body);
+    let response = await database.collection("Querries").insertOne(body);
 
-     Object.assign(body, {_id : response.insertedId.toString()});
-     io.emit(body.contentId, body)
+    Object.assign(body, { _id: response.insertedId.toString() });
 
     if (response) {
+
+      io.emit(body.contentId, body);
+
       res.send({ status: 200, response: response });
     } else {
       res.send({ status: 200, response: "Something went wrong" });
@@ -235,9 +234,8 @@ app.post("/upsertUserQuerries", authorizeToken, async (req, res) => {
   }
 });
 
-
 app.post("/upsertTeacherResponse", authorizeToken, async (req, res) => {
-  const body = req.body
+  const body = req.body;
 
   const token = req.headers.authorization.substring("Bearer ".length);
   // Verify if the provided token exists in the "tokens" collection
@@ -251,30 +249,49 @@ app.post("/upsertTeacherResponse", authorizeToken, async (req, res) => {
     const userResponse = await database
       .collection("users")
       .findOne({ _id: new ObjectId(userId) });
-         // Create an author object
+    // Create an author object
     const author = {
       teacher: userResponse.given_name + " " + userResponse.family_name,
       teacherId: userId,
       responseDate: Date(),
     };
-  
+
     // Merge the author object with the body
     Object.assign(body, author);
   }
   let response = await database.collection("Querries").updateOne(
-    { _id: new ObjectId(id) },
+    { _id: new ObjectId(body.id) },
     {
-      $set: {body},
+      
+      $set: body,
     },
     { upsert: true }
   );
-  if (response) {
-    res.send({ status: 200, message: "Content gone live successfull !" });
+  console.log(response);
+
+  if (response.modifiedCount === 1) {
+    // Document was successfully updated
+
+    // Retrieve the updated document
+    const updatedDocument = await database.collection("Querries").findOne({
+      _id: new ObjectId(body.id),
+    });
+
+    if (updatedDocument) {
+      // Send the updated document as a response to the user
+      io.emit(body.contentId, updatedDocument);
+      res.send({ status: 200, message: "Content gone live successfull !" });
+    } else {
+      // Handle the case when the document retrieval fails
+      res
+        .status(500)
+        .json({ error: "Failed to retrieve the updated document." });
+    }
   } else {
-    res.send({ status: 403, message: "Something went wrong !" });
+    // Handle the case when the document update fails
+    res.status(500).json({ error: "Failed to update the document." });
   }
 });
-
 
 // Integrate Server
 const server = http.createServer(app);
@@ -303,7 +320,6 @@ io.on("connection", (socket) => {
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running fast");
 });
-
 
 app.post("/live", authorizeToken, async (req, res) => {
   const { lec_id, live } = req.body;
@@ -398,7 +414,10 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
     const authClient = await authorize(); // Implement your authorization logic here
     const uploadedFile = await uploadFile(authClient, req.file);
     const fileId = uploadedFile.data.id;
-    const filePath = req.body.content =='document'?`https://drive.google.com/file/d/${fileId}/preview`:`https://drive.google.com/uc?id=${fileId}`;
+    const filePath =
+      req.body.content == "document"
+        ? `https://drive.google.com/file/d/${fileId}/preview`
+        : `https://drive.google.com/uc?id=${fileId}`;
     const body = { ...req.body, content_link: filePath };
     const token = req.headers.authorization.substring("Bearer ".length);
     // Verify if the provided token exists in the "tokens" collection
@@ -412,31 +431,42 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
       const userResponse = await database
         .collection("users")
         .findOne({ _id: new ObjectId(userId) });
-           // Create an author object
+      // Create an author object
       const author = {
         author: userResponse.given_name + " " + userResponse.family_name,
         authorId: userId,
       };
-    
+
       // Merge the author object with the body
       Object.assign(body, author);
     }
-    
-    const contentDetailsResponse = await database.collection("contentDetails").insertOne(body);
+
+    const contentDetailsResponse = await database
+      .collection("contentDetails")
+      .insertOne(body);
     if (contentDetailsResponse) {
-      const notificationObject = { 
-        icon: req.body.content == 'document'?'document-text-outline':'' || req.body.content == 'video'?'play-circle-outline':'' || req.body.content == 'audio'?'musical-notes-outline':'',
+      const notificationObject = {
+        icon:
+          req.body.content == "document"
+            ? "document-text-outline"
+            : "" || req.body.content == "video"
+            ? "play-circle-outline"
+            : "" || req.body.content == "audio"
+            ? "musical-notes-outline"
+            : "",
         info: `${body.author} uploaded a new ${req.body.content}`,
         content: req.body.content,
         classId: req.body.classId,
         lec_id: req.body.lec_id,
         contentId: contentDetailsResponse.insertedId.toString(),
-        from: '/tabs/home',
+        from: "/tabs/home",
         author: body.author,
         authorId: body.authorId,
-      }
-    let notificationResponse = await database.collection("notifications").insertOne(notificationObject);
-     io.emit('notification', notificationObject)
+      };
+      let notificationResponse = await database
+        .collection("notifications")
+        .insertOne(notificationObject);
+      io.emit("notification", notificationObject);
       res.send({ status: 200, response: "Content uploaded sucessfully" });
     } else {
       res.send({ status: 400, response: "something went wrong" });
