@@ -218,10 +218,13 @@ app.post("/upsertUserQuerries", authorizeToken, async (req, res) => {
       // Merge the author object with the body
       Object.assign(body, author);
     }
-
     let response = await database
       .collection("Querries")
       .insertOne(body);
+
+     Object.assign(body, {id : response.insertedId.toString()});
+     io.emit(body.contentId, body)
+
     if (response) {
       res.send({ status: 200, response: response });
     } else {
