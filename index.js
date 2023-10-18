@@ -479,7 +479,7 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
             : "" || req.body.content == "audio"
             ? "musical-notes-outline"
             : "",
-        info: `${body.author} uploaded a new ${req.body.content}`,
+        info: `Teacher ${body.author} uploaded a new ${req.body.content}`,
         content: req.body.content,
         classId: req.body.classId,
         lec_id: req.body.lec_id,
