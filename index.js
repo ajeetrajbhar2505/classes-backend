@@ -133,8 +133,16 @@ app.get(
 
 app.get("/notifications", authorizeToken, async (req, res) => {
   let response = await database.collection("notifications").find({}).toArray();
-  if (response) {
+  const token = req.headers.authorization.substring("Bearer ".length);
+  const userData = await verifyTokenAndFetchUser(token);
+  console.log(userData);
+  if (response && userData) {
+    response = response.filter(notification => notification.authorId !== userData.userId);
+    console.log(response);
     res.send({ status: 200, response: response });
+  }
+  else{
+    res.send({ status: 200, response: "Something went wrong" });
   }
 });
 
