@@ -191,41 +191,47 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
   }
 });
 
-app.post("/upsertUserQuerries", authorizeToken, async (req, res) => {
+app.post("/upsertUserQuerries", async (req, res) => {
   try {
+    const notificationsBody = req.body.notification;
+    delete req.body.notification;
     const body = req.body;
     const token = req.headers.authorization.substring("Bearer ".length);
-    // Verify if the provided token exists in the "tokens" collection
-    const verifyToken = await database
-      .collection("tokens")
-      .findOne({ _id: new ObjectId(token) });
 
-    if (verifyToken) {
-      // Token is valid; retrieve user data based on the token's userId
-      const userId = verifyToken.userId;
-      const userResponse = await database
-        .collection("users")
-        .findOne({ _id: new ObjectId(userId) });
-      // Create an author object
-      const author = {
-        author: userResponse.given_name + " " + userResponse.family_name,
-        authorId: userId,
-        authorProfile: userResponse.picture,
-        date: Date(),
-      };
+    const userData = await verifyTokenAndFetchUser(token);
 
-      // Merge the author object with the body
-      Object.assign(body, author);
+    if (userData) {
+      // Merge the user data with the query body
+      Object.assign(body, {
+        author: userData.author,
+        authorId: userData.userId,
+        authorProfile: userData.authorProfile,
+        date: new Date(),
+      });
     }
-    let response = await database.collection("Querries").insertOne(body);
 
+    let response = await database.collection("Querries").insertOne(body);
     Object.assign(body, { _id: response.insertedId.toString() });
 
     if (response) {
-
+      // Send the query as a response
       io.emit(body.contentId, body);
 
-      res.send({ status: 200, response: response });
+      // Create a notification object and insert it into the "notifications" collection
+      const notification = Object.assign(notificationsBody, {
+        author: body.author,
+        authorId: body.authorId,
+        contentId: body.contentId,
+        info: ` Hello ${body.author}, I have a question on topic ${notificationsBody.topic}. Can you please assist me?`,
+        notificationDate: new Date(),
+      });
+
+      let notificationResponse = await database
+        .collection("notifications")
+        .insertOne(notification);
+      io.emit("notification", notification);
+
+      res.send({ status: 200, response: "Message send successfully!" });
     } else {
       res.send({ status: 200, response: "Something went wrong" });
     }
@@ -234,61 +240,73 @@ app.post("/upsertUserQuerries", authorizeToken, async (req, res) => {
   }
 });
 
-app.post("/upsertTeacherResponse", authorizeToken, async (req, res) => {
-  const body = req.body;
+app.post("/upsertTeacherResponse", async (req, res) => {
+  try {
+    const notificationsBody = req.body.notification;
+    delete req.body.notification;
+    const body = req.body;
+    const token = req.headers.authorization.substring("Bearer ".length);
 
-  const token = req.headers.authorization.substring("Bearer ".length);
-  // Verify if the provided token exists in the "tokens" collection
-  const verifyToken = await database
-    .collection("tokens")
-    .findOne({ _id: new ObjectId(token) });
+    const userData = await verifyTokenAndFetchUser(token);
 
-  if (verifyToken) {
-    // Token is valid; retrieve user data based on the token's userId
-    const userId = verifyToken.userId;
-    const userResponse = await database
-      .collection("users")
-      .findOne({ _id: new ObjectId(userId) });
-    // Create an author object
-    const author = {
-      teacher: userResponse.given_name + " " + userResponse.family_name,
-      teacherId: userId,
-      responseDate: Date(),
-    };
+    if (userData) {
+      // Merge the user data with the body
+      Object.assign(body, {
+        teacher: userData.author,
+        teacherId: userData.userId,
+        responseDate: new Date(),
+      });
 
-    // Merge the author object with the body
-    Object.assign(body, author);
-  }
-  let response = await database.collection("Querries").updateOne(
-    { _id: new ObjectId(body.id) },
-    {
-      
-      $set: body,
-    },
-    { upsert: true }
-  );
+      let response = await database.collection("Querries").updateOne(
+        { _id: new ObjectId(body.id) },
+        {
+          $set: body,
+        },
+        { upsert: true }
+      );
 
-  if (response.modifiedCount === 1) {
-    // Document was successfully updated
+      if (response.modifiedCount === 1) {
+        // Document was successfully updated
 
-    // Retrieve the updated document
-    const updatedDocument = await database.collection("Querries").findOne({
-      _id: new ObjectId(body.id),
-    });
+        // Retrieve the updated document
+        const updatedDocument = await database.collection("Querries").findOne({
+          _id: new ObjectId(body.id),
+        });
 
-    if (updatedDocument) {
-      // Send the updated document as a response to the user
-      io.emit(body.contentId, updatedDocument);
-      res.send({ status: 200, message: "Content gone live successfull !" });
+        if (updatedDocument) {
+          // Send the updated document as a response to the user
+          io.emit(body.contentId, updatedDocument);
+
+          // Create a notification object and insert it into the "notifications" collection
+          const notification = Object.assign(notificationsBody, {
+            author: body.teacher,
+            authorId: body.teacherId,
+            contentId: body.contentId,
+            info: `Teacher ${body.teacher} has answered your question! on topic ${notificationsBody.topic}`,
+            notificationDate: new Date(),
+          });
+
+          let notificationResponse = await database
+            .collection("notifications")
+            .insertOne(notification);
+          io.emit("notification", notification);
+          res.send({ status: 200, message: "Content gone live successfully!" });
+        } else {
+          // Handle the case when the document retrieval fails
+          res
+            .status(500)
+            .json({ error: "Failed to retrieve the updated document." });
+        }
+      } else {
+        // Handle the case when the document update fails
+        res.status(500).json({ error: "Failed to update the document." });
+      }
     } else {
-      // Handle the case when the document retrieval fails
-      res
-        .status(500)
-        .json({ error: "Failed to retrieve the updated document." });
+      // Handle the case when token verification fails
+      res.status(401).json({ error: "Unauthorized" });
     }
-  } else {
-    // Handle the case when the document update fails
-    res.status(500).json({ error: "Failed to update the document." });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -667,3 +685,30 @@ async function generateToken(tokenData) {
     throw error;
   }
 }
+
+const verifyTokenAndFetchUser = async (token) => {
+  try {
+    // Verify if the provided token exists in the "tokens" collection
+    const verifyToken = await database
+      .collection("tokens")
+      .findOne({ _id: new ObjectId(token) });
+
+    if (verifyToken) {
+      // Token is valid; retrieve user data based on the token's userId
+      const userId = verifyToken.userId;
+      const userResponse = await database
+        .collection("users")
+        .findOne({ _id: new ObjectId(userId) });
+
+      return {
+        userId: userId,
+        author: userResponse.given_name + " " + userResponse.family_name,
+        authorProfile: userResponse.picture,
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
