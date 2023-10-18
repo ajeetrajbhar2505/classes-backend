@@ -135,10 +135,8 @@ app.get("/notifications", authorizeToken, async (req, res) => {
   let response = await database.collection("notifications").find({}).toArray();
   const token = req.headers.authorization.substring("Bearer ".length);
   const userData = await verifyTokenAndFetchUser(token);
-  console.log(userData);
   if (response && userData) {
     response = response.filter(notification => notification.authorId !== userData.userId);
-    console.log(response);
     res.send({ status: 200, response: response });
   }
   else{
@@ -512,9 +510,11 @@ passport.use(
       clientID: process.env.OAuth_client_id,
       clientSecret: process.env.OAuth_Client_secret,
       callbackURL: process.env.OAuth_Callback_url,
+      scope: 'email',
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log(profile);
         return done(null, profile);
       } catch (error) {
         console.error("Error in Google OAuth strategy:", error);
@@ -567,6 +567,40 @@ app.get("/logout", authorizeToken, authorizeToken, async (req, res) => {
     res.send({ status: 403, message: "Something went wrong !" });
   }
 });
+
+app.post("/updateProfile", authorizeToken, async (req, res) => {
+  try {
+    const { _id, ...profileData } = req.body;
+    profileData.updated = new Date();
+
+    if (!_id) {
+      return res.status(400).json({ status: 400, response: "Missing user _id" });
+    }
+
+    const updateId = new ObjectId(_id);
+    delete profileData._id
+
+    const response = await database.collection("users").updateOne(
+      { _id: updateId },
+      { $set: profileData },
+      { upsert: true }
+    );
+
+    if (response.matchedCount === 0) {
+      return res.status(404).json({ status: 404, response: "User not found" });
+    }
+
+    if (response.modifiedCount === 0) {
+      return res.status(200).json({ status: 200, response: "No changes made" });
+    }
+
+    res.status(200).json({ status: 200, response: "Profile updated successfully" });
+  } catch (error) {
+    console.error("Error in /updateProfile:", error);
+    res.status(500).json({ status: 500, response: "Internal server error" });
+  }
+});
+
 
 app.get("/profile", authorizeToken, authorizeToken, async (req, res) => {
   try {
