@@ -570,7 +570,7 @@ app.get("/logout", authorizeToken, authorizeToken, async (req, res) => {
 
 app.post("/updateProfile", authorizeToken, async (req, res) => {
   try {
-    const { _id, ...profileData } = req.body;
+    const { _id, ...profileData } = req.body;az
     profileData.updated = new Date();
 
     if (!_id) {
