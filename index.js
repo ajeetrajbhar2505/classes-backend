@@ -363,6 +363,53 @@ app.post("/live", authorizeToken, async (req, res) => {
   }
 });
 
+
+app.post("/quizes", authorizeToken, async (req, res) => {
+  try {
+    let response = await database
+      .collection("quizes")
+      .insertOne(req.body);
+    if (response) {
+      res.send({ status: 200, response: 'Quiz uploaded successfully' });
+    } else {
+      res.send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
+app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
+  const { classId,lec_id} = req.params
+  try {
+    const response = await database
+      .collection("quizes").find({classId : classId,lec_id : lec_id}).toArray()
+    if (response) {
+      res.send({ status: 200, response: response });
+    } else {
+      res.send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
+app.get("/fetchpaper/:paperId", authorizeToken, async (req, res) => {
+  const { paperId } = req.params
+  console.log(paperId);
+  try {
+    const response = await database
+      .collection("quizes").findOne({_id :new ObjectId(paperId)})
+    if (response) {
+      res.send({ status: 200, response: response });
+    } else {
+      res.send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
 const scope = ["https://www.googleapis.com/auth/drive"];
 
 async function authorize() {
@@ -570,7 +617,7 @@ app.get("/logout", authorizeToken, authorizeToken, async (req, res) => {
 
 app.post("/updateProfile", authorizeToken, async (req, res) => {
   try {
-    const { _id, ...profileData } = req.body;az
+    const { _id, ...profileData } = req.body;
     profileData.updated = new Date();
 
     if (!_id) {
@@ -646,7 +693,7 @@ app.get(
         const userExists = await database
           .collection("users")
           .findOne({ email: req.user._json.email });
-
+     console.log(userExists);
         if (userExists) {
           await database.collection("users").updateOne(
             { _id: new ObjectId(userExists._id) },
