@@ -382,8 +382,17 @@ app.post("/quizes", authorizeToken, async (req, res) => {
 app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
   const { classId,lec_id} = req.params
   try {
+    const classDetails = await database
+      .collection("classDetails").find({_id : new ObjectId(classId)}).toArray()
+      if (classDetails.length === 0) {
+        return res.status(404).send({ status: 404, response: "Class not found" });
+      }
+    const className = classDetails[0].classNamme || ''
     const response = await database
-      .collection("quizes").find({classId : classId,lec_id : lec_id}).toArray()
+      .collection("quizes").find({ classId, lec_id }).toArray()
+      response.forEach(element => {
+        element.className = className
+      });
     if (response) {
       res.send({ status: 200, response: response });
     } else {
@@ -396,7 +405,6 @@ app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
 
 app.get("/fetchpaper/:paperId", authorizeToken, async (req, res) => {
   const { paperId } = req.params
-  console.log(paperId);
   try {
     const response = await database
       .collection("quizes").findOne({_id :new ObjectId(paperId)})
