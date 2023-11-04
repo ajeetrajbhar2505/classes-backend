@@ -80,7 +80,7 @@ async function connectToMongoDB() {
 // Authorization function middleware
 async function authorizeToken(req, res, next) {
   // Get the token from the request
-  // if (!req.headers.authorization) {
+  // if (!'6530fac6ed0559324a4f9c92') {
   //   return res.sendFile(__dirname + "/public/index.html");
   // }
   const token =  '6530fac6ed0559324a4f9c92';
@@ -160,7 +160,7 @@ app.get(
 
 app.get("/notifications", authorizeToken, async (req, res) => {
   let response = await database.collection("notifications").find({}).toArray();
-  const token = req.headers.authorization.substring("Bearer ".length);
+  const token = '6530fac6ed0559324a4f9c92'.substring("Bearer ".length);
   const userData = await verifyTokenAndFetchUser(token);
   if (response && userData) {
     response = response.filter(notification => notification.authorId !== userData.userId);
@@ -229,7 +229,7 @@ app.post("/upsertUserQuerries", async (req, res) => {
     const notificationsBody = req.body.notification;
     delete req.body.notification;
     const body = req.body;
-    const token = req.headers.authorization.substring("Bearer ".length);
+    const token = '6530fac6ed0559324a4f9c92'.substring("Bearer ".length);
 
     const userData = await verifyTokenAndFetchUser(token);
 
@@ -278,7 +278,7 @@ app.post("/upsertTeacherResponse", async (req, res) => {
     const notificationsBody = req.body.notification;
     delete req.body.notification;
     const body = req.body;
-    const token = req.headers.authorization.substring("Bearer ".length);
+    const token = '6530fac6ed0559324a4f9c92'.substring("Bearer ".length);
 
     const userData = await verifyTokenAndFetchUser(token);
 
@@ -524,7 +524,7 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
         ? `https://drive.google.com/file/d/${fileId}/preview`
         : `https://drive.google.com/uc?id=${fileId}`;
     const body = { ...req.body, content_link: filePath };
-    const token = req.headers.authorization.substring("Bearer ".length);
+    const token = '6530fac6ed0559324a4f9c92'.substring("Bearer ".length);
     // Verify if the provided token exists in the "tokens" collection
     const verifyToken = await database
       .collection("tokens")
@@ -625,7 +625,7 @@ app.get(
 );
 
 app.get("/logout", authorizeToken, authorizeToken, async (req, res) => {
-  const token = req.headers.authorization.substring("Bearer ".length);
+  const token = '6530fac6ed0559324a4f9c92'.substring("Bearer ".length);
   // Verify if the provided token exists in the "tokens" collection
   const verifyToken = await database
     .collection("tokens")
@@ -686,7 +686,7 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
 
 app.get("/profile", authorizeToken, authorizeToken, async (req, res) => {
   try {
-    const token = req.headers.authorization.substring("Bearer ".length);
+    const token = '6530fac6ed0559324a4f9c92'.substring("Bearer ".length);
     // Verify if the provided token exists in the "tokens" collection
     const verifyToken = await database
       .collection("tokens")
