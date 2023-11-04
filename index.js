@@ -21,7 +21,7 @@ const Google_apiKey = "AIzaSyDawuFcZATmMq4CWIkWXJIDbK4VnAtRYw4"
 const cx = "216b4fc1a48f24748"
 const OAuth_client_id = "137958169014-s5s64uk9bpfm5m03t0sm6ci991lolke2.apps.googleusercontent.com"
 const OAuth_Client_secret = "c"
-const OAuth_Callback_url = "http://localhost:3000/google/callback"
+const OAuth_Callback_url = "https://zany-plum-llama-tam.cyclic.app/google/callback"
 
 const type =  "service_account"
 const project_id =  "uploadfiles-399908"
