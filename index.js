@@ -18,7 +18,7 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 // Serve static files from the 'public' directory
-app.use(express.static(__dirname + "/public"));
+// app.use(express.static(__dirname + "/public"));
 
 // Configure session middleware
 app.use(
@@ -75,6 +75,10 @@ async function authorizeToken(req, res, next) {
     return res.status(401).send("Unauthorized");
   }
 }
+
+app.get("/", async (req, res) => {
+    res.send('Welcome to the app')
+  });
 
 app.get("/classDetails", authorizeToken, async (req, res) => {
   let response = await database.collection("classDetails").find({}).toArray();
