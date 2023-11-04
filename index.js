@@ -77,6 +77,11 @@ async function authorizeToken(req, res, next) {
   }
 }
 
+
+app.get("/", async (req, res) => {
+  res.send('Hello Ajeet')
+});
+
 app.get("/classDetails", authorizeToken, async (req, res) => {
   let response = await database.collection("classDetails").find({}).toArray();
   if (response) {
