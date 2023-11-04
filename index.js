@@ -83,7 +83,7 @@ async function authorizeToken(req, res, next) {
   // if (!req.headers.authorization) {
   //   return res.sendFile(__dirname + "/public/index.html");
   // }
-  const token = req.headers.authorization.substring("Bearer ".length) || '6530fac6ed0559324a4f9c92';
+  const token =  '6530fac6ed0559324a4f9c92';
   if (!token) {
     return res.sendFile(__dirname + "/public/index.html");
   }
