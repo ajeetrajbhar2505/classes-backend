@@ -318,27 +318,8 @@ app.post("/upsertTeacherResponse", async (req, res) => {
 
 // Integrate Server
 const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
+var io;
 
-io.on("connection", (socket) => {
-  // Emit a message to the client
-  socket.on("message", (msg) => {
-    io.emit("message", msg);
-  });
-
-  socket.on("notification", (msg) => {
-    io.emit("notification", msg);
-  });
-
-  socket.on("live", (msg) => {
-    io.emit("live", msg);
-  });
-
-  socket.on("credentials", (msg) => {
-    io.emit("credentials", msg);
-  });
-});
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running fast");
