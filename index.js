@@ -37,6 +37,7 @@ app.use(passport.session());
 const MongoClient = require("mongodb").MongoClient;
 const uri = process.env.mongo_url; // Change this to your MongoDB server URI
 
+
 const client = new MongoClient(uri);
 var database;
 async function connectToMongoDB() {
