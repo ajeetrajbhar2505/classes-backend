@@ -324,7 +324,7 @@ app.post("/upsertTeacherResponse", async (req, res) => {
 var io;
 
 
-app.listen(process.env.PORT, connectToMongoDB(), () => {
+app.listen(3000, connectToMongoDB(), () => {
   console.log("app running fast");
 });
 
