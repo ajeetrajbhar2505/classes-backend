@@ -342,6 +342,7 @@ io.on("connection", (socket) => {
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running fast");
+  console.log(process.env)
 });
 
 app.post("/live", authorizeToken, async (req, res) => {
