@@ -12,33 +12,6 @@ const path = require("path");
 dotenv.config();
 app.use(cors());
 
-
-// files
-const PORT = 3000
-const mongo_url =  "mongodb+srv://ajeet:fYLvMkLPRY6vwbGy@cluster0.e5pj6.mongodb.net/"
-const API_KEY = "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"
-const Google_apiKey = "AIzaSyDawuFcZATmMq4CWIkWXJIDbK4VnAtRYw4"
-const cx = "216b4fc1a48f24748"
-const OAuth_client_id = "137958169014-s5s64uk9bpfm5m03t0sm6ci991lolke2.apps.googleusercontent.com"
-const OAuth_Client_secret = "c"
-const OAuth_Callback_url = "https://zany-plum-llama-tam.cyclic.app/google/callback"
-
-const type =  "service_account"
-const project_id =  "uploadfiles-399908"
-const private_key_id =  "265a376b488ddb81d6ed0af307f7453cbb94c23d"
-const private_key =  "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCxHUp8F6Oib483\ntW1S4/OF17ewS4r2qkCYLH8GIh7qnZXme6r0gG2At1391avTc4Ev/iUqyhIJYXpv\nnyyXENI/WCNqoL7jtHGOD3LjVDTsnkasrrv+WzExLoWYRN9E+5QQhMF2BAtPFKeY\n57Qfxd5Qh56c3mB8WhTXspSOY8k3M4W8HBwVnwyvUY+LIGc3KgSlpSHWNlcjhvEV\nubsqsOcfDkgoV8SrArpD9xQW05XGx7BoYiwzRRpyeds9y4xvzdol3sQZYm/xjBoO\np4mlnSgyilH6YDTl6BG9S96Ofi17ldAvaycfWu59NBaYiJ54TAnToCEjyL1vOOcu\nZt+iostnAgMBAAECggEATkV+DdIamCYKGln82tVvYPZgsLHp0zGRQ07iwfChThjf\nTpDXj58UBX7DtHJRsaxJas67WSodB3VDOQIUoBwodiL639vzEElFp7zPDoS/sNQP\nsq+z1+gwGKaRFqZVLzSpDhXFM2T9JHEh0fKPyTzWDyuoHnYuGLZsoJhEi5qwqUpI\nU0ZTDtTDqQgYoE5k3mtyHZFP/ykjhsFSt4Ko815hL1XHwbea29UgHMKMUXiPBMNg\nlx6CyoTnjudUA26Pw6TN9G5F63h2zBcv9zCPAgGpGRQNKFuHHHURj/w/SKxVSTZ5\nypPkleyufJbNe4o+MQSwJ0zsNzOAiIO9KMu95BIuzQKBgQDnb2I0KFPLjxJJTDqf\n2mJ4u70DAu7qGHB/hxmpm8/yaTL8zW0j1WiH636rgR4ou4wCQ3ltH4l3UdtSvdQ5\nQnxIZ8jC6VrBhlSSRCSRP6DyH/YbInzQHDIA5qJdmIwIHGcIAfo+aF9ZryrWB0V/\nz7Fh82Pj7zdPPQyTu4Yoz3OvPQKBgQDD6eQzvyNgk7V+reOQI00OHeBYjr115GDn\nWOqD+psR2uoctjB9vVgCtpCOWEvaU53jLsbrlxDU1deaYP96J7/bdTTNFFfCrEWv\nhOQQrbd8qKoEm4nJ2DOABQUgabEXWAi5u+yi2lGadZuqW8wivo1uWyrsXfWTDfYy\n30sqSmiPcwKBgGFsXeae40dZXtVEJZmNEM7KGPLflTsuNo04jfD8Cjl9V11cDIl9\nGJe+5n/DxrJW4MVDKiZplDCKYM0f4+qGtlK0faqvGOlGZut7i/ko09OY6Lzbc7cX\nZ2VBsS+9O5Vef3C7hGApB5p1Ro76WKNJBt642l/lH19Xz6eQ1RTw3z3xAoGBAIxz\nue5/MVWjj5JqB6LmK+/a62ORsbI7MF2rGTXVDCcY0o4S72C1xcrsJ2ZlVrwHBkJA\n3ss3WhG73P4IXB+vL5SdymTcGK6v4qWamAZ9A/aS1JDJEVdrcEBvWOWL4DHkIx1E\n5Lk72xTpC9huR0MBaVOceIFMOypZ8A84liKThbKRAoGAIL5jmr2PRZLn+YwZ/BK8\nQmMkuncrpFwkJKY8O16/ZGx6ffMNZIcmTBGi7BNCd/bwUDY96RiQ2A2XZuj1EYvC\n7r7A+Jlwacp2tp9tw7v7HHS/WIdf3L4OoExsJ+dXOZotHR6tat7gSRS33mpFhmfB\const nELMEPaEIsc3hf8ZFyiXNQG4=\n-----END PRIVATE KEY-----\n"
-const client_email =  "fileupload@uploadfiles-399908.iam.gserviceaccount.com"
-const client_id =  "106242195859709849813"
-const client_secret = "65a376b488ddb81d6ed0af307f7453cbb94c23d"
-const auth_uri =  "https://accounts.google.com/o/oauth2/auth"
-const token_uri =  "https://oauth2.googleapis.com/token"
-const auth_provider_x509_cert_url =  "https://www.googleapis.com/oauth2/v1/certs"
-const client_x509_cert_url =  "https://www.googleapis.com/robot/v1/metadata/x509/fileupload%40uploadfiles-399908.iam.gserviceaccount.com"
-const universe_domain =  "googleapis.com"
-
-
-
-
 const fs = require("fs");
 const { google } = require("googleapis");
 const passport = require("passport");
@@ -50,7 +23,7 @@ app.use(express.static(__dirname + "/public"));
 // Configure session middleware
 app.use(
   require("express-session")({
-    secret: private_key,
+    secret: process.env.private_key,
     resave: true,
     saveUninitialized: true,
   })
@@ -62,7 +35,7 @@ app.use(passport.session());
 
 // Connection URI
 const MongoClient = require("mongodb").MongoClient;
-const uri = mongo_url; // Change this to your MongoDB server URI
+const uri = process.env.mongo_url; // Change this to your MongoDB server URI
 
 const client = new MongoClient(uri);
 var database;
@@ -80,10 +53,10 @@ async function connectToMongoDB() {
 // Authorization function middleware
 async function authorizeToken(req, res, next) {
   // Get the token from the request
-  // if (!'6530fac6ed0559324a4f9c92') {
-  //   return res.sendFile(__dirname + "/public/index.html");
-  // }
-  const token =  '6530fac6ed0559324a4f9c92';
+  if (!req.headers.authorization) {
+    return res.sendFile(__dirname + "/public/index.html");
+  }
+  const token = req.headers.authorization.substring("Bearer ".length);
   if (!token) {
     return res.sendFile(__dirname + "/public/index.html");
   }
@@ -160,7 +133,7 @@ app.get(
 
 app.get("/notifications", authorizeToken, async (req, res) => {
   let response = await database.collection("notifications").find({}).toArray();
-  const token = '6530fac6ed0559324a4f9c92';
+  const token = req.headers.authorization.substring("Bearer ".length);
   const userData = await verifyTokenAndFetchUser(token);
   if (response && userData) {
     response = response.filter(notification => notification.authorId !== userData.userId);
@@ -229,7 +202,7 @@ app.post("/upsertUserQuerries", async (req, res) => {
     const notificationsBody = req.body.notification;
     delete req.body.notification;
     const body = req.body;
-    const token = '6530fac6ed0559324a4f9c92';
+    const token = req.headers.authorization.substring("Bearer ".length);
 
     const userData = await verifyTokenAndFetchUser(token);
 
@@ -278,7 +251,7 @@ app.post("/upsertTeacherResponse", async (req, res) => {
     const notificationsBody = req.body.notification;
     delete req.body.notification;
     const body = req.body;
-    const token = '6530fac6ed0559324a4f9c92';
+    const token = req.headers.authorization.substring("Bearer ".length);
 
     const userData = await verifyTokenAndFetchUser(token);
 
@@ -367,7 +340,7 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, connectToMongoDB(), () => {
+server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running fast");
 });
 
@@ -449,9 +422,9 @@ const scope = ["https://www.googleapis.com/auth/drive"];
 
 async function authorize() {
   const jwtClient = new google.auth.JWT(
-    client_email,
+    process.env.client_email,
     null,
-    private_key,
+    process.env.private_key,
     scope
   );
 
@@ -524,7 +497,7 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
         ? `https://drive.google.com/file/d/${fileId}/preview`
         : `https://drive.google.com/uc?id=${fileId}`;
     const body = { ...req.body, content_link: filePath };
-    const token = '6530fac6ed0559324a4f9c92';
+    const token = req.headers.authorization.substring("Bearer ".length);
     // Verify if the provided token exists in the "tokens" collection
     const verifyToken = await database
       .collection("tokens")
@@ -589,9 +562,9 @@ app.post("/upsertContentDetails", authorizeToken, async (req, res) => {});
 passport.use(
   new GoogleStrategy(
     {
-      clientID: OAuth_client_id,
-      clientSecret: OAuth_Client_secret,
-      callbackURL: OAuth_Callback_url,
+      clientID: process.env.OAuth_client_id,
+      clientSecret: process.env.OAuth_Client_secret,
+      callbackURL: process.env.OAuth_Callback_url,
       scope: 'email',
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -625,7 +598,7 @@ app.get(
 );
 
 app.get("/logout", authorizeToken, authorizeToken, async (req, res) => {
-  const token = '6530fac6ed0559324a4f9c92';
+  const token = req.headers.authorization.substring("Bearer ".length);
   // Verify if the provided token exists in the "tokens" collection
   const verifyToken = await database
     .collection("tokens")
@@ -684,9 +657,9 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
 });
 
 
-app.get("/profile", authorizeToken, async (req, res) => {
+app.get("/profile", authorizeToken, authorizeToken, async (req, res) => {
   try {
-    const token = '6530fac6ed0559324a4f9c92';
+    const token = req.headers.authorization.substring("Bearer ".length);
     // Verify if the provided token exists in the "tokens" collection
     const verifyToken = await database
       .collection("tokens")
