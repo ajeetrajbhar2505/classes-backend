@@ -719,21 +719,7 @@ app.get(
             email: req.user._json.email,
             dateTime: new Date(),
           });
-          return  res.send(`<html>
-          <head>
-            <title>Authentication Successful</title>
-          </head>
-          <body>
-            <h1>Authentication successful! You can now close this window.</h1>
-            <script>
-              // Close the browser window after 2 seconds
-              setTimeout(() => {
-                window.close();
-              }, 2000);
-            </script>
-          </body>
-        </html>
-        `);
+            return res.sendFile(__dirname + "/public/otp.html");
         } else {
           // User doesn't exist, create a new user
           const response = await database
@@ -755,21 +741,7 @@ app.get(
           }
 
           // Send the token in the response
-          return  res.send(`<html>
-          <head>
-            <title>Authentication Successful</title>
-          </head>
-          <body>
-            <h1>Authentication successful! You can now close this window.</h1>
-            <script>
-              // Close the browser window after 2 seconds
-              setTimeout(() => {
-                window.close();
-              }, 2000);
-            </script>
-          </body>
-        </html>
-        `);
+          return res.sendFile(__dirname + "/public/otp.html");
         }
       } else {
         // User is not authenticated, handle accordingly
