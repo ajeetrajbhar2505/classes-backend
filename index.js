@@ -12,6 +12,17 @@ const path = require("path");
 dotenv.config();
 app.use(cors());
 
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    // TODO: replace `user` and `pass` values from <https://forwardemail.net>
+    user: "ajeetrajbhar2504@gmail.com",
+    pass: "yhjm bskd feyc ezmo",
+  },
+});
+
 const fs = require("fs");
 const { google } = require("googleapis");
 const passport = require("passport");
@@ -425,18 +436,16 @@ app.get("/fetchpaper/:paperId", authorizeToken, async (req, res) => {
 app.post("/verifyOTP", authorizeToken, async (req, res) => {
   const { otp } = req.body;
   try {
-    const response = await database
-      .collection("tokens")
-      .findOne({ otp: otp });
+    const response = await database.collection("tokens").findOne({ otp: otp });
     if (response) {
       return res
-            .status(200)
-            .redirect(
-              "http://localhost:8100/sucessfull/" +
-                response.userId +
-                "/" +
-                response._id.toString()
-            );
+        .status(200)
+        .redirect(
+          "http://localhost:8100/sucessfull/" +
+            response.userId +
+            "/" +
+            response._id.toString()
+        );
     } else {
       res.send({ status: 200, response: "OTP is Invalid" });
     }
@@ -725,6 +734,8 @@ app.get(
   async (req, res) => {
     try {
       if (req.isAuthenticated()) {
+        const otp = generateOTP();
+
         // Check if the user exists in the database
         const userExists = await database
           .collection("users")
@@ -746,15 +757,22 @@ app.get(
             userId: userExists._id.toString(),
             email: req.user._json.email,
             dateTime: new Date(),
+            otp: otp,
           });
-          return res
-            .status(200)
-            .redirect(
-              "http://localhost:8100/sucessfull/" +
-                userExists._id.toString() +
-                "/" +
-                response.insertedId
-            );
+
+          var mailOption = {
+            from: "ajeetrajbhar2504@gmail.com",
+            to: req.user._json.email,
+            subject: "A one-time password of Class App",
+            text: `A one-time password is ${otp}`,
+          };
+
+          transporter.sendMail(mailOption, function (err, info) {
+            if (err) {
+              return res.sendFile(__dirname + "/public/index.html");
+            }
+            return res.sendFile(__dirname + "/public/otp.html");
+          });
         } else {
           // User doesn't exist, create a new user
           const response = await database
@@ -765,11 +783,11 @@ app.get(
             userId: response.insertedId.toString(),
             email: req.user._json.email,
             dateTime: new Date(),
+            otp: otp,
           };
 
           // Generate a token (assuming you have a function for this)
           const token = await generateToken(tokenData);
-          const otp = generateOTP();
 
           if (!token) {
             // Handle token generation failure
@@ -777,14 +795,20 @@ app.get(
           }
 
           // Send the token in the response
-          return res
-            .status(200)
-            .redirect(
-              "http://localhost:8100/sucessfull/" +
-                response.insertedId.toString() +
-                "/" +
-                token.insertedId
-            );
+
+          var mailOption = {
+            from: "ajeetrajbhar2504@gmail.com",
+            to: req.user._json.email,
+            subject: "A one-time password of Class App",
+            text: `A one-time password is ${otp}`,
+          };
+
+          transporter.sendMail(mailOption, function (err, info) {
+            if (err) {
+              return res.sendFile(__dirname + "/public/index.html");
+            }
+            return res.sendFile(__dirname + "/public/otp.html");
+          });
         }
       } else {
         // User is not authenticated, handle accordingly
@@ -843,39 +867,3 @@ const verifyTokenAndFetchUser = async (token) => {
     throw error;
   }
 };
-
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    // TODO: replace `user` and `pass` values from <https://forwardemail.net>
-    user: "ajeetrajbhar2504@gmail.com",
-    pass: "yhjm bskd feyc ezmo",
-  },
-});
-
-var mailOption = {
-  from: "ajeetrajbhar2504@gmail.com",
-  to: "bipinrajbhar.bscit@gmail.com",
-  subject: "Sending email using nodejs!",
-  text: "hii",
-};
-
-// transporter.sendMail(mailOption,function(err,info){
-//   if (err) {
-//     console.log(err);
-//   }
-//   console.log(info);
-// })
-
-const twilio = require("twilio");
-
-function sendSMS() {
-      const client = new twilio('ACb07a8d0fb27b6c543c9f9a96655efdda','993a87454588e50eca70d473f21812eb')
-      return client.messages.create({body : 'hii this is message',from : '+15868886',to : '9004747860'})
-      .then(message=> console.log(message))
-      .catch(err=>console.log(err))
-}
-
-sendSMS()
