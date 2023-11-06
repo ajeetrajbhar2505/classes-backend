@@ -868,3 +868,14 @@ var mailOption = {
 //   }
 //   console.log(info);
 // })
+
+const twilio = require("twilio");
+
+function sendSMS() {
+      const client = new twilio('ACb07a8d0fb27b6c543c9f9a96655efdda','993a87454588e50eca70d473f21812eb')
+      return client.messages.create({body : 'hii this is message',from : '+15868886',to : '9004747860'})
+      .then(message=> console.log(message))
+      .catch(err=>console.log(err))
+}
+
+sendSMS()
