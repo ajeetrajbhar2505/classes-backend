@@ -12,16 +12,6 @@ const path = require("path");
 dotenv.config();
 app.use(cors());
 
-const nodemailer = require("nodemailer");
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    // TODO: replace `user` and `pass` values from <https://forwardemail.net>
-    user: "ajeetrajbhar2504@gmail.com",
-    pass: "yhjm bskd feyc ezmo",
-  },
-});
-
 const fs = require("fs");
 const { google } = require("googleapis");
 const passport = require("passport");
@@ -353,6 +343,7 @@ io.on("connection", (socket) => {
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running faster");
+  console.log(process.env);
 });
 
 app.post("/live", authorizeToken, async (req, res) => {
@@ -425,6 +416,29 @@ app.get("/fetchpaper/:paperId", authorizeToken, async (req, res) => {
       res.send({ status: 200, response: response });
     } else {
       res.send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
+app.post("/verifyOTP", authorizeToken, async (req, res) => {
+  const { otp } = req.body;
+  try {
+    const response = await database
+      .collection("tokens")
+      .findOne({ otp: otp });
+    if (response) {
+      return res
+            .status(200)
+            .redirect(
+              "http://localhost:8100/sucessfull/" +
+                response.userId +
+                "/" +
+                response._id.toString()
+            );
+    } else {
+      res.send({ status: 200, response: "OTP is Invalid" });
     }
   } catch (error) {
     res.send({ status: 500, response: "Internal server error" });
@@ -711,8 +725,6 @@ app.get(
   async (req, res) => {
     try {
       if (req.isAuthenticated()) {
-        const otp = generateOTP();
-
         // Check if the user exists in the database
         const userExists = await database
           .collection("users")
@@ -723,38 +735,32 @@ app.get(
             { _id: new ObjectId(userExists._id) },
             {
               $set: {
-                otp: otp,
                 logged: true,
                 date: Date(),
               },
             },
             { upsert: true }
           );
-
           // User exists, check for an token'
           const response = await database.collection("tokens").insertOne({
             userId: userExists._id.toString(),
             email: req.user._json.email,
             dateTime: new Date(),
           });
-          var mailOption = {
-            from: "ajeetrajbhar2504@gmail.com",
-            to: req.user._json.email,
-            subject: "A one-time password of Class App",
-            text: `A one-time password is ${otp}`,
-          };
-
-          transporter.sendMail(mailOption, function (err, info) {
-            if (err) {
-              return res.sendFile(__dirname + "/public/index.html");
-            }
-            return res.sendFile(__dirname + "/public/otp.html");
-          });
+          return res
+            .status(200)
+            .redirect(
+              "http://localhost:8100/sucessfull/" +
+                userExists._id.toString() +
+                "/" +
+                response.insertedId
+            );
         } else {
           // User doesn't exist, create a new user
           const response = await database
             .collection("users")
-            .insertOne({ ...req.user._json, logged: true, otp: otp });
+            .insertOne({ ...req.user._json, logged: true });
+
           const tokenData = {
             userId: response.insertedId.toString(),
             email: req.user._json.email,
@@ -763,6 +769,7 @@ app.get(
 
           // Generate a token (assuming you have a function for this)
           const token = await generateToken(tokenData);
+          const otp = generateOTP();
 
           if (!token) {
             // Handle token generation failure
@@ -770,7 +777,14 @@ app.get(
           }
 
           // Send the token in the response
-          return res.sendFile(__dirname + "/public/otp.html");
+          return res
+            .status(200)
+            .redirect(
+              "http://localhost:8100/sucessfull/" +
+                response.insertedId.toString() +
+                "/" +
+                token.insertedId
+            );
         }
       } else {
         // User is not authenticated, handle accordingly
@@ -797,15 +811,11 @@ async function generateToken(tokenData) {
     throw error;
   }
 }
-
 function generateOTP() {
   const min = 1000; // Minimum 4-digit number
   const max = 9999; // Maximum 4-digit number
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
-const otp = generateOTP();
-console.log(`Your 4-digit OTP is: ${otp}`);
 
 const verifyTokenAndFetchUser = async (token) => {
   try {
@@ -833,3 +843,39 @@ const verifyTokenAndFetchUser = async (token) => {
     throw error;
   }
 };
+
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    // TODO: replace `user` and `pass` values from <https://forwardemail.net>
+    user: "ajeetrajbhar2504@gmail.com",
+    pass: "yhjm bskd feyc ezmo",
+  },
+});
+
+var mailOption = {
+  from: "ajeetrajbhar2504@gmail.com",
+  to: "bipinrajbhar.bscit@gmail.com",
+  subject: "Sending email using nodejs!",
+  text: "hii",
+};
+
+// transporter.sendMail(mailOption,function(err,info){
+//   if (err) {
+//     console.log(err);
+//   }
+//   console.log(info);
+// })
+
+const twilio = require("twilio");
+
+function sendSMS() {
+      const client = new twilio('ACb07a8d0fb27b6c543c9f9a96655efdda','993a87454588e50eca70d473f21812eb')
+      return client.messages.create({body : 'hii this is message',from : '+15868886',to : '9004747860'})
+      .then(message=> console.log(message))
+      .catch(err=>console.log(err))
+}
+
+sendSMS()
