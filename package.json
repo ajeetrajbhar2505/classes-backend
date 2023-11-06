@@ -124,6 +124,8 @@
     "negotiator": "^0.6.3",
     "node-domexception": "^1.0.0",
     "node-fetch": "^3.3.2",
+    "node-mailjet": "^6.0.4",
+    "nodemailer": "^6.9.7",
     "nodemon": "^3.0.1",
     "nopt": "^1.0.10",
     "normalize-path": "^3.0.0",

@@ -810,3 +810,29 @@ const verifyTokenAndFetchUser = async (token) => {
     throw error;
   }
 };
+
+
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    // TODO: replace `user` and `pass` values from <https://forwardemail.net>
+    user: 'ajeetrajbhar2504@gmail.com',
+    pass: 'yhjm bskd feyc ezmo'
+  }
+});
+
+var mailOption = {
+  from  :'ajeetrajbhar2504@gmail.com',
+  to: 'bipinrajbhar.bscit@gmail.com',
+  subject : 'Sending email using nodejs!',
+  text : 'hii'
+}
+
+transporter.sendMail(mailOption,function(err,info){
+  if (err) {
+    console.log(err);
+  }
+  console.log(info);
+})
