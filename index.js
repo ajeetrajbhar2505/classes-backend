@@ -450,6 +450,40 @@ app.post("/verifyOTP", async (req, res) => {
   }
 });
 
+app.post("/Login", async (req, res) => {
+  const { username,password } = req.body;
+  try {
+    const userExists = await database.collection("users").findOne({ email: username,password:password });
+    if (userExists) {
+        await database.collection("users").updateOne(
+          { _id: new ObjectId(userExists._id) },
+          {
+            $set: {
+              logged: true,
+              date: Date(),
+            },
+          },
+          { upsert: true }
+        );
+        // User exists, check for an token'
+        const createToken = await database.collection("tokens").insertOne({
+          userId: userExists._id.toString(),
+          email: userExists.email,
+          dateTime: new Date(),
+        });
+
+        return res.status(200).send({
+          status: 200,
+          response: { userId: userExists._id.toString(), token: createToken.insertedId.toString() },
+        });
+    } else {
+      res.send({ status: 204, response: "Credentials are incorrect" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
 const scope = ["https://www.googleapis.com/auth/drive"];
 
 async function authorize() {
