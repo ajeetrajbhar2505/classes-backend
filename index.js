@@ -438,13 +438,10 @@ app.post("/verifyOTP", async (req, res) => {
   try {
     const response = await database.collection("tokens").findOne({ otp: otp });
     if (response) {
-      return res
-        .status(200)
-        .send({
-          status: 200,
-          userId: response.userId,
-          token: response._id.toString(),
-        });
+      return res.status(200).send({
+        status: 200,
+        response: { userId: response.userId, token: response._id.toString() },
+      });
     } else {
       res.send({ status: 204, response: "OTP is Invalid" });
     }
