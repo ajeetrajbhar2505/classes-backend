@@ -12,6 +12,16 @@ const path = require("path");
 dotenv.config();
 app.use(cors());
 
+const nodemailer = require("nodemailer");
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    // TODO: replace `user` and `pass` values from <https://forwardemail.net>
+    user: "ajeetrajbhar2504@gmail.com",
+    pass: "yhjm bskd feyc ezmo",
+  },
+});
+
 const fs = require("fs");
 const { google } = require("googleapis");
 const passport = require("passport");
@@ -136,10 +146,11 @@ app.get("/notifications", authorizeToken, async (req, res) => {
   const token = req.headers.authorization.substring("Bearer ".length);
   const userData = await verifyTokenAndFetchUser(token);
   if (response && userData) {
-    response = response.filter(notification => notification.authorId !== userData.userId);
+    response = response.filter(
+      (notification) => notification.authorId !== userData.userId
+    );
     res.send({ status: 200, response: response });
-  }
-  else{
+  } else {
     res.send({ status: 200, response: "Something went wrong" });
   }
 });
@@ -363,14 +374,11 @@ app.post("/live", authorizeToken, async (req, res) => {
   }
 });
 
-
 app.post("/quizes", authorizeToken, async (req, res) => {
   try {
-    let response = await database
-      .collection("quizes")
-      .insertOne(req.body);
+    let response = await database.collection("quizes").insertOne(req.body);
     if (response) {
-      res.send({ status: 200, response: 'Quiz uploaded successfully' });
+      res.send({ status: 200, response: "Quiz uploaded successfully" });
     } else {
       res.send({ status: 200, response: "Something went wrong" });
     }
@@ -380,19 +388,23 @@ app.post("/quizes", authorizeToken, async (req, res) => {
 });
 
 app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
-  const { classId,lec_id} = req.params
+  const { classId, lec_id } = req.params;
   try {
     const classDetails = await database
-      .collection("classDetails").find({_id : new ObjectId(classId)}).toArray()
-      if (classDetails.length === 0) {
-        return res.status(404).send({ status: 404, response: "Class not found" });
-      }
-    const className = classDetails[0].classNamme || ''
+      .collection("classDetails")
+      .find({ _id: new ObjectId(classId) })
+      .toArray();
+    if (classDetails.length === 0) {
+      return res.status(404).send({ status: 404, response: "Class not found" });
+    }
+    const className = classDetails[0].classNamme || "";
     const response = await database
-      .collection("quizes").find({ classId, lec_id }).toArray()
-      response.forEach(element => {
-        element.className = className
-      });
+      .collection("quizes")
+      .find({ classId, lec_id })
+      .toArray();
+    response.forEach((element) => {
+      element.className = className;
+    });
     if (response) {
       res.send({ status: 200, response: response });
     } else {
@@ -404,10 +416,11 @@ app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
 });
 
 app.get("/fetchpaper/:paperId", authorizeToken, async (req, res) => {
-  const { paperId } = req.params
+  const { paperId } = req.params;
   try {
     const response = await database
-      .collection("quizes").findOne({_id :new ObjectId(paperId)})
+      .collection("quizes")
+      .findOne({ _id: new ObjectId(paperId) });
     if (response) {
       res.send({ status: 200, response: response });
     } else {
@@ -565,7 +578,7 @@ passport.use(
       clientID: process.env.OAuth_client_id,
       clientSecret: process.env.OAuth_Client_secret,
       callbackURL: process.env.OAuth_Callback_url,
-      scope: 'email',
+      scope: "email",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -629,17 +642,17 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
     profileData.updated = new Date();
 
     if (!_id) {
-      return res.status(400).json({ status: 400, response: "Missing user _id" });
+      return res
+        .status(400)
+        .json({ status: 400, response: "Missing user _id" });
     }
 
     const updateId = new ObjectId(_id);
-    delete profileData._id
+    delete profileData._id;
 
-    const response = await database.collection("users").updateOne(
-      { _id: updateId },
-      { $set: profileData },
-      { upsert: true }
-    );
+    const response = await database
+      .collection("users")
+      .updateOne({ _id: updateId }, { $set: profileData }, { upsert: true });
 
     if (response.matchedCount === 0) {
       return res.status(404).json({ status: 404, response: "User not found" });
@@ -649,13 +662,14 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
       return res.status(200).json({ status: 200, response: "No changes made" });
     }
 
-    res.status(200).json({ status: 200, response: "Profile updated successfully" });
+    res
+      .status(200)
+      .json({ status: 200, response: "Profile updated successfully" });
   } catch (error) {
     console.error("Error in /updateProfile:", error);
     res.status(500).json({ status: 500, response: "Internal server error" });
   }
 });
-
 
 app.get("/profile", authorizeToken, authorizeToken, async (req, res) => {
   try {
@@ -697,35 +711,50 @@ app.get(
   async (req, res) => {
     try {
       if (req.isAuthenticated()) {
+        const otp = generateOTP();
+
         // Check if the user exists in the database
         const userExists = await database
           .collection("users")
           .findOne({ email: req.user._json.email });
-     console.log(userExists);
+        console.log(userExists);
         if (userExists) {
           await database.collection("users").updateOne(
             { _id: new ObjectId(userExists._id) },
             {
               $set: {
+                otp: otp,
                 logged: true,
                 date: Date(),
               },
             },
             { upsert: true }
           );
+
           // User exists, check for an token'
           const response = await database.collection("tokens").insertOne({
             userId: userExists._id.toString(),
             email: req.user._json.email,
             dateTime: new Date(),
           });
+          var mailOption = {
+            from: "ajeetrajbhar2504@gmail.com",
+            to: req.user._json.email,
+            subject: "A one-time password of Class App",
+            text: `A one-time password is ${otp}`,
+          };
+
+          transporter.sendMail(mailOption, function (err, info) {
+            if (err) {
+              return res.sendFile(__dirname + "/public/index.html");
+            }
             return res.sendFile(__dirname + "/public/otp.html");
+          });
         } else {
           // User doesn't exist, create a new user
           const response = await database
             .collection("users")
-            .insertOne({ ...req.user._json, logged: true });
-
+            .insertOne({ ...req.user._json, logged: true, otp: otp });
           const tokenData = {
             userId: response.insertedId.toString(),
             email: req.user._json.email,
@@ -769,6 +798,15 @@ async function generateToken(tokenData) {
   }
 }
 
+function generateOTP() {
+  const min = 1000; // Minimum 4-digit number
+  const max = 9999; // Maximum 4-digit number
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+const otp = generateOTP();
+console.log(`Your 4-digit OTP is: ${otp}`);
+
 const verifyTokenAndFetchUser = async (token) => {
   try {
     // Verify if the provided token exists in the "tokens" collection
@@ -795,29 +833,3 @@ const verifyTokenAndFetchUser = async (token) => {
     throw error;
   }
 };
-
-
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    // TODO: replace `user` and `pass` values from <https://forwardemail.net>
-    user: 'ajeetrajbhar2504@gmail.com',
-    pass: 'yhjm bskd feyc ezmo'
-  }
-});
-
-var mailOption = {
-  from  :'ajeetrajbhar2504@gmail.com',
-  to: 'bipinrajbhar.bscit@gmail.com',
-  subject : 'Sending email using nodejs!',
-  text : 'hii'
-}
-
-// transporter.sendMail(mailOption,function(err,info){
-//   if (err) {
-//     console.log(err);
-//   }
-//   console.log(info);
-// })
