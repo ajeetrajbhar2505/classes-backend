@@ -342,7 +342,6 @@ io.on("connection", (socket) => {
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running faster");
-  console.log(process.env)
 });
 
 app.post("/live", authorizeToken, async (req, res) => {
@@ -720,14 +719,15 @@ app.get(
             email: req.user._json.email,
             dateTime: new Date(),
           });
-          return res
-            .status(200)
-            .redirect(
-              "http://localhost:8100/sucessfull/" +
-                userExists._id.toString() +
-                "/" +
-                response.insertedId
-            );
+          return  res.send(`
+          <script>
+            // Close the browser window after 2 seconds
+            setTimeout(() => {
+              window.close();
+            }, 2000);
+          </script>
+          <h1>Authentication successful! You can now close this window.</h1>
+        `);
         } else {
           // User doesn't exist, create a new user
           const response = await database
@@ -749,14 +749,15 @@ app.get(
           }
 
           // Send the token in the response
-          return res
-            .status(200)
-            .redirect(
-              "http://localhost:8100/sucessfull/" +
-                response.insertedId.toString() +
-                "/" +
-                token.insertedId
-            );
+          return  res.send(`
+          <script>
+            // Close the browser window after 2 seconds
+            setTimeout(() => {
+              window.close();
+            }, 2000);
+          </script>
+          <h1>Authentication successful! You can now close this window.</h1>
+        `);
         }
       } else {
         // User is not authenticated, handle accordingly
@@ -830,9 +831,9 @@ var mailOption = {
   text : 'hii'
 }
 
-transporter.sendMail(mailOption,function(err,info){
-  if (err) {
-    console.log(err);
-  }
-  console.log(info);
-})
+// transporter.sendMail(mailOption,function(err,info){
+//   if (err) {
+//     console.log(err);
+//   }
+//   console.log(info);
+// })
