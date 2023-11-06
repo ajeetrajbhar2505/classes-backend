@@ -440,7 +440,11 @@ app.post("/verifyOTP", async (req, res) => {
     if (response) {
       return res
         .status(200)
-        .send({userId : response.userId,token : response._id.toString()})
+        .send({
+          status: 200,
+          userId: response.userId,
+          token: response._id.toString(),
+        });
     } else {
       res.send({ status: 204, response: "OTP is Invalid" });
     }
