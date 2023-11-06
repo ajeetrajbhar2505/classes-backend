@@ -433,7 +433,7 @@ app.get("/fetchpaper/:paperId", authorizeToken, async (req, res) => {
   }
 });
 
-app.post("/verifyOTP", authorizeToken, async (req, res) => {
+app.post("/verifyOTP", async (req, res) => {
   const { otp } = req.body;
   try {
     const response = await database.collection("tokens").findOne({ otp: otp });
