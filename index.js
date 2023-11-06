@@ -719,14 +719,20 @@ app.get(
             email: req.user._json.email,
             dateTime: new Date(),
           });
-          return  res.send(`
-          <script>
-            // Close the browser window after 2 seconds
-            setTimeout(() => {
-              window.close();
-            }, 2000);
-          </script>
-          <h1>Authentication successful! You can now close this window.</h1>
+          return  res.send(`<html>
+          <head>
+            <title>Authentication Successful</title>
+          </head>
+          <body>
+            <h1>Authentication successful! You can now close this window.</h1>
+            <script>
+              // Close the browser window after 2 seconds
+              setTimeout(() => {
+                window.close();
+              }, 2000);
+            </script>
+          </body>
+        </html>
         `);
         } else {
           // User doesn't exist, create a new user
@@ -749,14 +755,20 @@ app.get(
           }
 
           // Send the token in the response
-          return  res.send(`
-          <script>
-            // Close the browser window after 2 seconds
-            setTimeout(() => {
-              window.close();
-            }, 2000);
-          </script>
-          <h1>Authentication successful! You can now close this window.</h1>
+          return  res.send(`<html>
+          <head>
+            <title>Authentication Successful</title>
+          </head>
+          <body>
+            <h1>Authentication successful! You can now close this window.</h1>
+            <script>
+              // Close the browser window after 2 seconds
+              setTimeout(() => {
+                window.close();
+              }, 2000);
+            </script>
+          </body>
+        </html>
         `);
         }
       } else {
