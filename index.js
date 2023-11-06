@@ -440,14 +440,9 @@ app.post("/verifyOTP", async (req, res) => {
     if (response) {
       return res
         .status(200)
-        .redirect(
-          "http://localhost:8100/sucessfull/" +
-            response.userId +
-            "/" +
-            response._id.toString()
-        );
+        .send({userId : response.userId,token : response._id.toString()})
     } else {
-      res.send({ status: 200, response: "OTP is Invalid" });
+      res.send({ status: 204, response: "OTP is Invalid" });
     }
   } catch (error) {
     res.send({ status: 500, response: "Internal server error" });
