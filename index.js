@@ -451,31 +451,44 @@ app.post("/verifyOTP", async (req, res) => {
 });
 
 app.post("/Login", async (req, res) => {
-  const { username,password } = req.body;
+  const { username, password } = req.body;
   try {
-    const userExists = await database.collection("users").findOne({ email: username,password:password });
+    const userExists = await database
+      .collection("users")
+      .findOne({ email: username, password: password });
     if (userExists) {
-        await database.collection("users").updateOne(
-          { _id: new ObjectId(userExists._id) },
-          {
-            $set: {
-              logged: true,
-              date: Date(),
-            },
+      const otp = generateOTP();
+      await database.collection("users").updateOne(
+        { _id: new ObjectId(userExists._id) },
+        {
+          $set: {
+            logged: true,
+            date: Date(),
           },
-          { upsert: true }
-        );
-        // User exists, check for an token'
-        const createToken = await database.collection("tokens").insertOne({
-          userId: userExists._id.toString(),
-          email: userExists.email,
-          dateTime: new Date(),
-        });
+        },
+        { upsert: true }
+      );
+      // User exists, check for an token'
+      const createToken = await database.collection("tokens").insertOne({
+        userId: userExists._id.toString(),
+        email: userExists.email,
+        dateTime: new Date(),
+        otp: otp,
+      });
 
-        return res.status(200).send({
-          status: 200,
-          response: { userId: userExists._id.toString(), token: createToken.insertedId.toString() },
-        });
+      var mailOption = {
+        from: "ajeetrajbhar2504@gmail.com",
+        to: userExists.email,
+        subject: "A one-time password of Class App",
+        text: `A one-time password is ${otp}`,
+      };
+
+      transporter.sendMail(mailOption, function (err, info) {
+        if (err) {
+          res.send({ status: 200, response: "Otp send failed" });
+        }
+        res.send({ status: 200, response: "Otp send successfully" });
+      });
     } else {
       res.send({ status: 204, response: "Credentials are incorrect" });
     }
