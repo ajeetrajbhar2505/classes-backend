@@ -562,12 +562,7 @@ const storage = multer.diskStorage({
 });
 
 // Configure multer to specify where to store uploaded files
-const upload = multer({ storage: multer.memoryStorage({
-  filename: function (req, file, cb) {
-    // Use the current timestamp as a unique file name.
-    cb(null, Date.now() + file.originalname);
-  },
-}) });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Route to handle file upload
 app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
