@@ -170,6 +170,7 @@
     "statuses": "^2.0.1",
     "stream": "^0.0.2",
     "streamsearch": "^1.1.0",
+    "string_decoder": "^1.1.1",
     "supports-color": "^5.5.0",
     "to-regex-range": "^5.0.1",
     "toidentifier": "^1.0.1",

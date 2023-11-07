@@ -354,6 +354,7 @@ io.on("connection", (socket) => {
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running faster");
+  console.log(process.env);
 });
 
 app.post("/live", authorizeToken, async (req, res) => {
@@ -515,8 +516,6 @@ async function authorize() {
 const uploadDirectory = "files/";
 
 // Function to upload a file to Google Drive
-const { Readable } = require("stream"); // Import the Readable class
-
 async function uploadFile(authClient, fileInfo) {
   return new Promise((resolve, reject) => {
     const drive = google.drive({ version: "v3", auth: authClient });
@@ -526,17 +525,12 @@ async function uploadFile(authClient, fileInfo) {
       parents: ["1CBsb1iOv_zEVn3A8JdxiiH3nWOrcUXpI"],
     };
 
-    // Create a readable stream from the memory buffer
-    const fileStream = new Readable();
-    fileStream.push(fileInfo.buffer);
-    fileStream.push(null); // Mark the end of the stream
-
     drive.files.create(
       {
         resource: fileMetaData,
         media: {
           mimeType: fileInfo.mimetype,
-          body: fileStream,
+          body: fs.createReadStream(`${uploadDirectory + fileInfo.filename}`),
         },
         fields: "id",
       },
@@ -553,7 +547,10 @@ async function uploadFile(authClient, fileInfo) {
 // Configure Multer to specify where to store uploaded files and their names.
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, ''); // Specify the directory where files will be stored.
+    if (!fs.existsSync(uploadDirectory)) {
+      fs.mkdirSync(uploadDirectory);
+    }
+    cb(null, uploadDirectory); // Specify the directory where files will be stored.
   },
   filename: function (req, file, cb) {
     // Use the current timestamp as a unique file name.
@@ -562,7 +559,7 @@ const storage = multer.diskStorage({
 });
 
 // Configure multer to specify where to store uploaded files
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage });
 
 // Route to handle file upload
 app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
@@ -572,7 +569,6 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
 
   try {
     const authClient = await authorize(); // Implement your authorization logic here
-  // Access the uploaded file's binary data as a buffer
     const uploadedFile = await uploadFile(authClient, req.file);
     const fileId = uploadedFile.data.id;
     const filePath =
