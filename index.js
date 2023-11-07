@@ -521,7 +521,7 @@ async function uploadFile(authClient, fileInfo) {
     const drive = google.drive({ version: "v3", auth: authClient });
 
     const fileMetaData = {
-      name: fileInfo.originalname,
+      name: fileInfo.filename,
       parents: ["1CBsb1iOv_zEVn3A8JdxiiH3nWOrcUXpI"],
     };
 
@@ -553,8 +553,11 @@ const storage = multer.diskStorage({
     cb(null, uploadDirectory); // Specify the directory where files will be stored.
   },
   filename: function (req, file, cb) {
-    // Use the current timestamp as a unique file name.
-    cb(null, Date.now() + file.originalname);
+    const timestamp = Date.now();
+    const originalname = file.originalname;
+    const ext = originalname.slice(((originalname.lastIndexOf(".") - 1) >>> 0) + 2);
+    const newFileName = `${timestamp}.${ext}`;
+    cb(null, newFileName);
   },
 });
 
