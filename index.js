@@ -354,7 +354,6 @@ io.on("connection", (socket) => {
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running faster");
-  console.log(process.env);
 });
 
 app.post("/live", authorizeToken, async (req, res) => {
@@ -514,6 +513,8 @@ async function authorize() {
 
 // Create the "uploads" directory if it doesn't exist
 const uploadDirectory = "files/";
+const streamifier = require("streamifier");
+
 
 // Function to upload a file to Google Drive
 async function uploadFile(authClient, fileInfo) {
@@ -530,7 +531,7 @@ async function uploadFile(authClient, fileInfo) {
         resource: fileMetaData,
         media: {
           mimeType: fileInfo.mimetype,
-          body: fs.createReadStream(`${uploadDirectory + fileInfo.filename}`),
+          body: streamifier.createReadStream(fileInfo.buffer),
         },
         fields: "id",
       },
@@ -559,7 +560,7 @@ const storage = multer.diskStorage({
 });
 
 // Configure multer to specify where to store uploaded files
-const upload = multer({ storage });
+const upload = multer({ storage:multer.memoryStorage() });
 
 // Route to handle file upload
 app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
