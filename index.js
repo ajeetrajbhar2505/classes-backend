@@ -182,6 +182,21 @@ app.post("/upsertCalenderDetails", authorizeToken, async (req, res) => {
   }
 });
 
+app.post("/register", authorizeToken, async (req, res) => {
+  try {
+    let response = await database
+      .collection("users")
+      .insertOne(req.body);
+    if (response) {
+      res.send({ status: 200, response: response });
+    } else {
+      res.send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
 app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
   const { contentId } = req.params;
   try {
@@ -342,7 +357,6 @@ io.on("connection", (socket) => {
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running faster");
-  console.log(process.env)
 });
 
 app.post("/live", authorizeToken, async (req, res) => {
@@ -570,7 +584,6 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log(profile);
         return done(null, profile);
       } catch (error) {
         console.error("Error in Google OAuth strategy:", error);
@@ -702,7 +715,6 @@ app.get(
         const userExists = await database
           .collection("users")
           .findOne({ email: req.user._json.email });
-     console.log(userExists);
         if (userExists) {
           await database.collection("users").updateOne(
             { _id: new ObjectId(userExists._id) },
