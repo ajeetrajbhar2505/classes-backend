@@ -210,7 +210,7 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
 });
 
 
-app.post("/register", authorizeToken, async (req, res) => {
+app.post("/register", async (req, res) => {
   try {
     let response = await database
       .collection("users")
