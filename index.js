@@ -209,6 +209,22 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
   }
 });
 
+
+app.post("/register", authorizeToken, async (req, res) => {
+  try {
+    let response = await database
+      .collection("users")
+      .insertOne(req.body);
+    if (response) {
+      res.send({ status: 200, response: response });
+    } else {
+      res.send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
 app.post("/upsertUserQuerries", async (req, res) => {
   try {
     const notificationsBody = req.body.notification;
