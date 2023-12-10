@@ -119,13 +119,18 @@ app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
 });
 
 app.post("/upsertViewCount", authorizeToken, async (req, res) => {
+  const viewer = req.body.userProfile;
+  const contentId = new ObjectId(req.body.contentId);
+
   try {
-    // Increment the view count by 1
-    const updatedViewCount = { $inc: { view: 1 } };
+    const updateOperation = {
+      $inc: { view: 1 },
+      $push: { viewers: viewer },
+    };
 
     let response = await database.collection("contentDetails").updateOne(
-      { _id: new ObjectId(req.body.contentId) },
-      updatedViewCount,
+      { _id: contentId },
+      updateOperation,
       { upsert: true }
     );
 
@@ -137,6 +142,7 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
+
 
 
 app.get("/contentDetails/:classId/:lec_id", authorizeToken, async (req, res) => {
