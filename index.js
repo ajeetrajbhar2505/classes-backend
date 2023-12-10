@@ -123,15 +123,25 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   const contentId = new ObjectId(req.body.contentId);
 
   try {
-    const updateOperation = {
+    // Remove existing viewer
+    const pullOperation = {
+      $pull: { viewers: { userId: viewer.userId } }
+    };
+
+    await database.collection("contentDetails").updateOne(
+      { _id: contentId },
+      pullOperation
+    );
+
+    // Add the new viewer
+    const pushOperation = {
       $inc: { view: 1 },
-      $pull: { viewers: { userId: viewer.userId } }, // Remove existing viewer
-      $push: { viewers: viewer }, // Add the new viewer
+      $push: { viewers: viewer }
     };
 
     let response = await database.collection("contentDetails").updateOne(
       { _id: contentId },
-      updateOperation,
+      pushOperation,
       { upsert: true }
     );
 
@@ -143,6 +153,7 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
+
 
 
 
