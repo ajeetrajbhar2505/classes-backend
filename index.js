@@ -118,6 +118,27 @@ app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
   }
 });
 
+app.post("/upsertViewCount", authorizeToken, async (req, res) => {
+  try {
+    // Increment the view count by 1
+    const updatedViewCount = { $inc: { view: 1 } };
+
+    let response = await database.collection("contentDetails").updateOne(
+      { _id: new ObjectId(req.body.contentId) },
+      updatedViewCount,
+      { upsert: true }
+    );
+
+    if (response.modifiedCount === 1) {
+      res.status(200).send({ status: 200, response: response });
+    }
+  } catch (error) {
+    console.error("Error in upsertViewCount:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
+
+
 app.get("/contentDetails/:classId/:lec_id", authorizeToken, async (req, res) => {
   try {
     const { classId, lec_id } = req.params;
