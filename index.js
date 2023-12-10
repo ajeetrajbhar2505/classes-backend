@@ -12,6 +12,17 @@ const path = require("path");
 dotenv.config();
 app.use(cors());
 
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    // TODO: replace `user` and `pass` values from <https://forwardemail.net>
+    user: "ajeetrajbhar2504@gmail.com",
+    pass: "yhjm bskd feyc ezmo",
+  },
+});
+
 const fs = require("fs");
 const { google } = require("googleapis");
 const passport = require("passport");
@@ -77,78 +88,111 @@ async function authorizeToken(req, res, next) {
 }
 
 app.get("/classDetails", authorizeToken, async (req, res) => {
-  let response = await database.collection("classDetails").find({}).toArray();
-  if (response) {
-    res.send({ status: 200, response: response });
+  try {
+    const response = await database.collection("classDetails").find({}).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in classDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.get("/mostWatched", authorizeToken, async (req, res) => {
-  let response = await database.collection("lectureDetails").find({}).toArray();
-  if (response) {
-    res.send({ status: 200, response: response });
+  try {
+    const response = await database.collection("lectureDetails").find({}).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in mostWatched:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
-  const { classId } = req.params;
-  let response = await database
-    .collection("lectureDetails")
-    .find({ classId: classId })
-    .toArray();
-  if (response) {
-    res.send({ status: 200, response: response });
+  try {
+    const { classId } = req.params;
+    const response = await database.collection("lectureDetails").find({ classId: classId }).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in lectureDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
-app.get(
-  "/contentDetails/:classId/:lec_id",
-  authorizeToken,
-  async (req, res) => {
+app.get("/contentDetails/:classId/:lec_id", authorizeToken, async (req, res) => {
+  try {
     const { classId, lec_id } = req.params;
-    let response = await database
+    const response = await database
       .collection("contentDetails")
       .find({ classId: classId, lec_id: lec_id })
       .toArray();
-    if (response) {
-      res.send({ status: 200, response: response });
-    }
+    
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in contentDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
-);
+});
 
-app.get(
-  "/content/:classId/:lec_id/:content_id",
-  authorizeToken,
-  async (req, res) => {
+app.get("/content/:classId/:lec_id/:content_id", authorizeToken, async (req, res) => {
+  try {
     const { classId, lec_id, content_id } = req.params;
-    let response = await database
+    const response = await database
       .collection("contentDetails")
       .find({ _id: new ObjectId(content_id) })
       .toArray();
-    if (response) {
-      res.send({ status: 200, response: response });
-    }
+    
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in content:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
-);
+});
 
 app.get("/notifications", authorizeToken, async (req, res) => {
-  let response = await database.collection("notifications").find({}).toArray();
-  const token = req.headers.authorization.substring("Bearer ".length);
-  const userData = await verifyTokenAndFetchUser(token);
-  if (response && userData) {
-    response = response.filter(notification => notification.authorId !== userData.userId);
-    res.send({ status: 200, response: response });
-  }
-  else{
-    res.send({ status: 200, response: "Something went wrong" });
+  try {
+    const response = await database.collection("notifications").find({}).toArray();
+    const token = req.headers.authorization.substring("Bearer ".length);
+    const userData = await verifyTokenAndFetchUser(token);
+    
+    if (response && userData) {
+      const filteredResponse = response.filter(
+        (notification) => notification.authorId !== userData.userId
+      );
+      
+      res.status(200).send({ status: 200, response: filteredResponse });
+    } else {
+      res.status(200).send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    console.error("Error in notifications:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.get("/contentDetails", authorizeToken, async (req, res) => {
-  const { classId, lec_id, content_id } = req.params;
-  let response = await database.collection("contentDetails").find({}).toArray();
-  if (response) {
-    res.send({ status: 200, response: response });
+  try {
+    const response = await database.collection("contentDetails").find({}).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in contentDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
+
+app.post("/search_contentDetails", authorizeToken, async (req, res) => {
+  try {
+    const { searchText } = req.body;
+    
+    // Using a regular expression for case-insensitive search
+    const query = { "content_title": { $regex: new RegExp(searchText, 'i') } };
+    
+    // Fetching data from MongoDB
+    const response = await database.collection("contentDetails").find(query).toArray();
+
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in search_contentDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -160,25 +204,27 @@ app.get("/calenderDetails/:desiredMonth", authorizeToken, async (req, res) => {
       .find({ month: desiredMonth })
       .toArray();
 
-    res.send({ status: 200, response: response });
+    res.status(200).send({ status: 200, response: response });
   } catch (error) {
-    console.error(error);
-    res.status(500).send({ status: 500, message: "Internal Server Error" });
+    console.error("Error in calenderDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.post("/upsertCalenderDetails", authorizeToken, async (req, res) => {
   try {
-    let response = await database
+    const response = await database
       .collection("calenderDetails")
       .insertOne(req.body);
-    if (response) {
-      res.send({ status: 200, response: response });
+
+    if (response.insertedCount > 0) {
+      res.status(200).send({ status: 200, response: response.ops });
     } else {
-      res.send({ status: 200, response: "Something went wrong" });
+      res.status(200).send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
-    res.send({ status: 500, response: "Internal server error" });
+    console.error("Error in upsertCalenderDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -190,10 +236,27 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
       .find({ contentId: contentId })
       .toArray();
 
-    res.send({ status: 200, response: response });
+    res.status(200).send({ status: 200, response: response });
   } catch (error) {
-    console.error(error);
-    res.status(500).send({ status: 500, message: "Internal Server Error" });
+    console.error("Error in Querries:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
+
+app.post("/register", async (req, res) => {
+  try {
+    const response = await database
+      .collection("users")
+      .insertOne(req.body);
+
+    if (response.insertedCount > 0) {
+      res.status(200).send({ status: 200, response: response.ops });
+    } else {
+      res.status(200).send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    console.error("Error in register:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -216,10 +279,10 @@ app.post("/upsertUserQuerries", async (req, res) => {
       });
     }
 
-    let response = await database.collection("Querries").insertOne(body);
+    const response = await database.collection("Querries").insertOne(body);
     Object.assign(body, { _id: response.insertedId.toString() });
 
-    if (response) {
+    if (response.insertedCount > 0) {
       // Send the query as a response
       io.emit(body.contentId, body);
 
@@ -232,19 +295,21 @@ app.post("/upsertUserQuerries", async (req, res) => {
         notificationDate: new Date(),
       });
 
-      let notificationResponse = await database
+      const notificationResponse = await database
         .collection("notifications")
         .insertOne(notification);
       io.emit("notification", notification);
 
-      res.send({ status: 200, response: "Message send successfully!" });
+      res.status(200).send({ status: 200, response: "Message sent successfully!" });
     } else {
-      res.send({ status: 200, response: "Something went wrong" });
+      res.status(200).send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
-    res.send({ status: 500, response: "Internal server error" });
+    console.error("Error in upsertUserQuerries:", error);
+    res.status(500).send({ status: 500, error: "Internal server error" });
   }
 });
+
 
 app.post("/upsertTeacherResponse", async (req, res) => {
   try {
@@ -341,7 +406,7 @@ io.on("connection", (socket) => {
 });
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
-  console.log("app running fast");
+  console.log("app running faster");
 });
 
 app.post("/live", authorizeToken, async (req, res) => {
@@ -363,14 +428,11 @@ app.post("/live", authorizeToken, async (req, res) => {
   }
 });
 
-
 app.post("/quizes", authorizeToken, async (req, res) => {
   try {
-    let response = await database
-      .collection("quizes")
-      .insertOne(req.body);
+    let response = await database.collection("quizes").insertOne(req.body);
     if (response) {
-      res.send({ status: 200, response: 'Quiz uploaded successfully' });
+      res.send({ status: 200, response: "Quiz uploaded successfully" });
     } else {
       res.send({ status: 200, response: "Something went wrong" });
     }
@@ -380,19 +442,23 @@ app.post("/quizes", authorizeToken, async (req, res) => {
 });
 
 app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
-  const { classId,lec_id} = req.params
+  const { classId, lec_id } = req.params;
   try {
     const classDetails = await database
-      .collection("classDetails").find({_id : new ObjectId(classId)}).toArray()
-      if (classDetails.length === 0) {
-        return res.status(404).send({ status: 404, response: "Class not found" });
-      }
-    const className = classDetails[0].classNamme || ''
+      .collection("classDetails")
+      .find({ _id: new ObjectId(classId) })
+      .toArray();
+    if (classDetails.length === 0) {
+      return res.status(404).send({ status: 404, response: "Class not found" });
+    }
+    const className = classDetails[0].classNamme || "";
     const response = await database
-      .collection("quizes").find({ classId, lec_id }).toArray()
-      response.forEach(element => {
-        element.className = className
-      });
+      .collection("quizes")
+      .find({ classId, lec_id })
+      .toArray();
+    response.forEach((element) => {
+      element.className = className;
+    });
     if (response) {
       res.send({ status: 200, response: response });
     } else {
@@ -404,14 +470,79 @@ app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
 });
 
 app.get("/fetchpaper/:paperId", authorizeToken, async (req, res) => {
-  const { paperId } = req.params
+  const { paperId } = req.params;
   try {
     const response = await database
-      .collection("quizes").findOne({_id :new ObjectId(paperId)})
+      .collection("quizes")
+      .findOne({ _id: new ObjectId(paperId) });
     if (response) {
       res.send({ status: 200, response: response });
     } else {
       res.send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
+app.post("/verifyOTP", async (req, res) => {
+  const { otp } = req.body;
+  try {
+    const response = await database.collection("tokens").findOne({ otp: otp });
+    if (response) {
+      return res.status(200).send({
+        status: 200,
+        response: { userId: response.userId, token: response._id.toString() },
+      });
+    } else {
+      res.send({ status: 204, response: "OTP is Invalid" });
+    }
+  } catch (error) {
+    res.send({ status: 500, response: "Internal server error" });
+  }
+});
+
+app.post("/Login", async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const userExists = await database
+      .collection("users")
+      .findOne({ email: username, password: password });
+    if (userExists) {
+      const otp = generateOTP();
+      await database.collection("users").updateOne(
+        { _id: new ObjectId(userExists._id) },
+        {
+          $set: {
+            logged: true,
+            date: Date(),
+          },
+        },
+        { upsert: true }
+      );
+      // User exists, check for an token'
+      const createToken = await database.collection("tokens").insertOne({
+        userId: userExists._id.toString(),
+        email: userExists.email,
+        dateTime: new Date(),
+        otp: otp,
+      });
+
+      var mailOption = {
+        from: "ajeetrajbhar2504@gmail.com",
+        to: userExists.email,
+        subject: "A one-time password of Class App",
+        text: `A one-time password is ${otp}`,
+      };
+
+      transporter.sendMail(mailOption, function (err, info) {
+        if (err) {
+          res.send({ status: 200, response: "Otp send failed" });
+        }
+        res.send({ status: 200, response: "Otp send successfully" });
+      });
+    } else {
+      res.send({ status: 204, response: "Credentials are incorrect" });
     }
   } catch (error) {
     res.send({ status: 500, response: "Internal server error" });
@@ -435,6 +566,8 @@ async function authorize() {
 
 // Create the "uploads" directory if it doesn't exist
 const uploadDirectory = "files/";
+const streamifier = require("streamifier");
+
 
 // Function to upload a file to Google Drive
 async function uploadFile(authClient, fileInfo) {
@@ -442,7 +575,7 @@ async function uploadFile(authClient, fileInfo) {
     const drive = google.drive({ version: "v3", auth: authClient });
 
     const fileMetaData = {
-      name: fileInfo.originalname,
+      name: fileInfo.filename,
       parents: ["1CBsb1iOv_zEVn3A8JdxiiH3nWOrcUXpI"],
     };
 
@@ -451,7 +584,7 @@ async function uploadFile(authClient, fileInfo) {
         resource: fileMetaData,
         media: {
           mimeType: fileInfo.mimetype,
-          body: fs.createReadStream(`${uploadDirectory + fileInfo.filename}`),
+          body: streamifier.createReadStream(fileInfo.buffer),
         },
         fields: "id",
       },
@@ -480,7 +613,7 @@ const storage = multer.diskStorage({
 });
 
 // Configure multer to specify where to store uploaded files
-const upload = multer({ storage });
+const upload = multer({ storage:multer.memoryStorage() });
 
 // Route to handle file upload
 app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
@@ -565,7 +698,7 @@ passport.use(
       clientID: process.env.OAuth_client_id,
       clientSecret: process.env.OAuth_Client_secret,
       callbackURL: process.env.OAuth_Callback_url,
-      scope: 'email',
+      scope: "email",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -629,17 +762,17 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
     profileData.updated = new Date();
 
     if (!_id) {
-      return res.status(400).json({ status: 400, response: "Missing user _id" });
+      return res
+        .status(400)
+        .json({ status: 400, response: "Missing user _id" });
     }
 
     const updateId = new ObjectId(_id);
-    delete profileData._id
+    delete profileData._id;
 
-    const response = await database.collection("users").updateOne(
-      { _id: updateId },
-      { $set: profileData },
-      { upsert: true }
-    );
+    const response = await database
+      .collection("users")
+      .updateOne({ _id: updateId }, { $set: profileData }, { upsert: true });
 
     if (response.matchedCount === 0) {
       return res.status(404).json({ status: 404, response: "User not found" });
@@ -649,13 +782,14 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
       return res.status(200).json({ status: 200, response: "No changes made" });
     }
 
-    res.status(200).json({ status: 200, response: "Profile updated successfully" });
+    res
+      .status(200)
+      .json({ status: 200, response: "Profile updated successfully" });
   } catch (error) {
     console.error("Error in /updateProfile:", error);
     res.status(500).json({ status: 500, response: "Internal server error" });
   }
 });
-
 
 app.get("/profile", authorizeToken, authorizeToken, async (req, res) => {
   try {
@@ -697,11 +831,13 @@ app.get(
   async (req, res) => {
     try {
       if (req.isAuthenticated()) {
+        const otp = generateOTP();
+
         // Check if the user exists in the database
         const userExists = await database
           .collection("users")
           .findOne({ email: req.user._json.email });
-     console.log(userExists);
+        console.log(userExists);
         if (userExists) {
           await database.collection("users").updateOne(
             { _id: new ObjectId(userExists._id) },
@@ -718,15 +854,22 @@ app.get(
             userId: userExists._id.toString(),
             email: req.user._json.email,
             dateTime: new Date(),
+            otp: otp,
           });
-          return res
-            .status(200)
-            .redirect(
-              "http://localhost:8100/sucessfull/" +
-                userExists._id.toString() +
-                "/" +
-                response.insertedId
-            );
+
+          var mailOption = {
+            from: "ajeetrajbhar2504@gmail.com",
+            to: req.user._json.email,
+            subject: "A one-time password of Class App",
+            text: `A one-time password is ${otp}`,
+          };
+
+          transporter.sendMail(mailOption, function (err, info) {
+            if (err) {
+              return res.sendFile(__dirname + "/public/index.html");
+            }
+            return res.sendFile(__dirname + "/public/otp.html");
+          });
         } else {
           // User doesn't exist, create a new user
           const response = await database
@@ -737,6 +880,7 @@ app.get(
             userId: response.insertedId.toString(),
             email: req.user._json.email,
             dateTime: new Date(),
+            otp: otp,
           };
 
           // Generate a token (assuming you have a function for this)
@@ -748,14 +892,20 @@ app.get(
           }
 
           // Send the token in the response
-          return res
-            .status(200)
-            .redirect(
-              "http://localhost:8100/sucessfull/" +
-                response.insertedId.toString() +
-                "/" +
-                token.insertedId
-            );
+
+          var mailOption = {
+            from: "ajeetrajbhar2504@gmail.com",
+            to: req.user._json.email,
+            subject: "A one-time password of Class App",
+            text: `A one-time password is ${otp}`,
+          };
+
+          transporter.sendMail(mailOption, function (err, info) {
+            if (err) {
+              return res.sendFile(__dirname + "/public/index.html");
+            }
+            return res.sendFile(__dirname + "/public/otp.html");
+          });
         }
       } else {
         // User is not authenticated, handle accordingly
@@ -782,6 +932,13 @@ async function generateToken(tokenData) {
     throw error;
   }
 }
+function generateOTP() {
+  const firstDigit = Math.floor(Math.random() * 9) + 1; // Random digit between 1 and 9
+  const remainingDigits = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10)); // Array of 3 random digits between 0 and 9
+  const otp = parseInt(`${firstDigit}${remainingDigits.join('')}`, 10);
+  return otp;
+}
+
 
 const verifyTokenAndFetchUser = async (token) => {
   try {
