@@ -125,7 +125,8 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   try {
     const updateOperation = {
       $inc: { view: 1 },
-      $push: { viewers: viewer },
+      $pull: { viewers: { userId: viewer.userId } }, // Remove existing viewer
+      $push: { viewers: viewer }, // Add the new viewer
     };
 
     let response = await database.collection("contentDetails").updateOne(
@@ -142,6 +143,7 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
+
 
 
 
