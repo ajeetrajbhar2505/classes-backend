@@ -99,58 +99,13 @@ app.get("/classDetails", authorizeToken, async (req, res) => {
 
 app.get("/mostWatched", authorizeToken, async (req, res) => {
   try {
-    const result = await database.collection("contentDetails").aggregate([
-      {
-        $lookup: {
-          from: "contentDetails",
-          localField: "_id",
-          foreignField: "_id",
-          as: "contentWithViews",
-        },
-      },
-      {
-        $unwind: "$contentWithViews",
-      },
-      {
-        $addFields: {
-          views: "$contentWithViews.view",
-          viewers: "$contentWithViews.viewers",
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          content_title: 1,
-          content_icon: 1,
-          content_link: 1,
-          content: 1,
-          published_at: 1,
-          author: 1,
-          authorId: 1,
-          views: 1,
-          viewers: 1,
-        },
-      },
-    ]
-    ).toArray();
-
-    res.status(200).send({ status: 200, response: result });
+    const response = await database.collection("lectureDetails").find({view : {$gt : 0}}).toArray();
+    res.status(200).send({ status: 200, response: response });
   } catch (error) {
-    console.error("Error in contentWithViews:", error);
+    console.error("Error in mostWatched:", error);
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
-
-
-// app.get("/mostWatched", authorizeToken, async (req, res) => {
-//   try {
-//     const response = await database.collection("lectureDetails").find({}).toArray();
-//     res.status(200).send({ status: 200, response: response });
-//   } catch (error) {
-//     console.error("Error in mostWatched:", error);
-//     res.status(500).send({ status: 500, error: "Internal Server Error" });
-//   }
-// });
 
 app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
   try {
