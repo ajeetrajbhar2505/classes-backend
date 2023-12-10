@@ -88,79 +88,111 @@ async function authorizeToken(req, res, next) {
 }
 
 app.get("/classDetails", authorizeToken, async (req, res) => {
-  let response = await database.collection("classDetails").find({}).toArray();
-  if (response) {
-    res.send({ status: 200, response: response });
+  try {
+    const response = await database.collection("classDetails").find({}).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in classDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.get("/mostWatched", authorizeToken, async (req, res) => {
-  let response = await database.collection("lectureDetails").find({}).toArray();
-  if (response) {
-    res.send({ status: 200, response: response });
+  try {
+    const response = await database.collection("lectureDetails").find({}).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in mostWatched:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
-  const { classId } = req.params;
-  let response = await database
-    .collection("lectureDetails")
-    .find({ classId: classId })
-    .toArray();
-  if (response) {
-    res.send({ status: 200, response: response });
+  try {
+    const { classId } = req.params;
+    const response = await database.collection("lectureDetails").find({ classId: classId }).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in lectureDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
-app.get(
-  "/contentDetails/:classId/:lec_id",
-  authorizeToken,
-  async (req, res) => {
+app.get("/contentDetails/:classId/:lec_id", authorizeToken, async (req, res) => {
+  try {
     const { classId, lec_id } = req.params;
-    let response = await database
+    const response = await database
       .collection("contentDetails")
       .find({ classId: classId, lec_id: lec_id })
       .toArray();
-    if (response) {
-      res.send({ status: 200, response: response });
-    }
+    
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in contentDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
-);
+});
 
-app.get(
-  "/content/:classId/:lec_id/:content_id",
-  authorizeToken,
-  async (req, res) => {
+app.get("/content/:classId/:lec_id/:content_id", authorizeToken, async (req, res) => {
+  try {
     const { classId, lec_id, content_id } = req.params;
-    let response = await database
+    const response = await database
       .collection("contentDetails")
       .find({ _id: new ObjectId(content_id) })
       .toArray();
-    if (response) {
-      res.send({ status: 200, response: response });
-    }
+    
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in content:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
-);
+});
 
 app.get("/notifications", authorizeToken, async (req, res) => {
-  let response = await database.collection("notifications").find({}).toArray();
-  const token = req.headers.authorization.substring("Bearer ".length);
-  const userData = await verifyTokenAndFetchUser(token);
-  if (response && userData) {
-    response = response.filter(
-      (notification) => notification.authorId !== userData.userId
-    );
-    res.send({ status: 200, response: response });
-  } else {
-    res.send({ status: 200, response: "Something went wrong" });
+  try {
+    const response = await database.collection("notifications").find({}).toArray();
+    const token = req.headers.authorization.substring("Bearer ".length);
+    const userData = await verifyTokenAndFetchUser(token);
+    
+    if (response && userData) {
+      const filteredResponse = response.filter(
+        (notification) => notification.authorId !== userData.userId
+      );
+      
+      res.status(200).send({ status: 200, response: filteredResponse });
+    } else {
+      res.status(200).send({ status: 200, response: "Something went wrong" });
+    }
+  } catch (error) {
+    console.error("Error in notifications:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.get("/contentDetails", authorizeToken, async (req, res) => {
-  const { classId, lec_id, content_id } = req.params;
-  let response = await database.collection("contentDetails").find({}).toArray();
-  if (response) {
-    res.send({ status: 200, response: response });
+  try {
+    const response = await database.collection("contentDetails").find({}).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in contentDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
+
+app.post("/search_contentDetails", authorizeToken, async (req, res) => {
+  try {
+    const { searchText } = req.body;
+    
+    // Using a regular expression for case-insensitive search
+    const query = { "content_title": { $regex: new RegExp(searchText, 'i') } };
+    
+    // Fetching data from MongoDB
+    const response = await database.collection("contentDetails").find(query).toArray();
+
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in search_contentDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -172,25 +204,27 @@ app.get("/calenderDetails/:desiredMonth", authorizeToken, async (req, res) => {
       .find({ month: desiredMonth })
       .toArray();
 
-    res.send({ status: 200, response: response });
+    res.status(200).send({ status: 200, response: response });
   } catch (error) {
-    console.error(error);
-    res.status(500).send({ status: 500, message: "Internal Server Error" });
+    console.error("Error in calenderDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.post("/upsertCalenderDetails", authorizeToken, async (req, res) => {
   try {
-    let response = await database
+    const response = await database
       .collection("calenderDetails")
       .insertOne(req.body);
-    if (response) {
-      res.send({ status: 200, response: response });
+
+    if (response.insertedCount > 0) {
+      res.status(200).send({ status: 200, response: response.ops });
     } else {
-      res.send({ status: 200, response: "Something went wrong" });
+      res.status(200).send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
-    res.send({ status: 500, response: "Internal server error" });
+    console.error("Error in upsertCalenderDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -202,26 +236,27 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
       .find({ contentId: contentId })
       .toArray();
 
-    res.send({ status: 200, response: response });
+    res.status(200).send({ status: 200, response: response });
   } catch (error) {
-    console.error(error);
-    res.status(500).send({ status: 500, message: "Internal Server Error" });
+    console.error("Error in Querries:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
-
 app.post("/register", async (req, res) => {
   try {
-    let response = await database
+    const response = await database
       .collection("users")
       .insertOne(req.body);
-    if (response) {
-      res.send({ status: 200, response: response });
+
+    if (response.insertedCount > 0) {
+      res.status(200).send({ status: 200, response: response.ops });
     } else {
-      res.send({ status: 200, response: "Something went wrong" });
+      res.status(200).send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
-    res.send({ status: 500, response: "Internal server error" });
+    console.error("Error in register:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -244,10 +279,10 @@ app.post("/upsertUserQuerries", async (req, res) => {
       });
     }
 
-    let response = await database.collection("Querries").insertOne(body);
+    const response = await database.collection("Querries").insertOne(body);
     Object.assign(body, { _id: response.insertedId.toString() });
 
-    if (response) {
+    if (response.insertedCount > 0) {
       // Send the query as a response
       io.emit(body.contentId, body);
 
@@ -260,19 +295,21 @@ app.post("/upsertUserQuerries", async (req, res) => {
         notificationDate: new Date(),
       });
 
-      let notificationResponse = await database
+      const notificationResponse = await database
         .collection("notifications")
         .insertOne(notification);
       io.emit("notification", notification);
 
-      res.send({ status: 200, response: "Message send successfully!" });
+      res.status(200).send({ status: 200, response: "Message sent successfully!" });
     } else {
-      res.send({ status: 200, response: "Something went wrong" });
+      res.status(200).send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
-    res.send({ status: 500, response: "Internal server error" });
+    console.error("Error in upsertUserQuerries:", error);
+    res.status(500).send({ status: 500, error: "Internal server error" });
   }
 });
+
 
 app.post("/upsertTeacherResponse", async (req, res) => {
   try {
@@ -896,10 +933,12 @@ async function generateToken(tokenData) {
   }
 }
 function generateOTP() {
-  const min = 1000; // Minimum 4-digit number
-  const max = 9999; // Maximum 4-digit number
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  const firstDigit = Math.floor(Math.random() * 9) + 1; // Random digit between 1 and 9
+  const remainingDigits = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10)); // Array of 3 random digits between 0 and 9
+  const otp = parseInt(`${firstDigit}${remainingDigits.join('')}`, 10);
+  return otp;
 }
+
 
 const verifyTokenAndFetchUser = async (token) => {
   try {
