@@ -99,7 +99,7 @@ app.get("/classDetails", authorizeToken, async (req, res) => {
 
 app.get("/mostWatched", authorizeToken, async (req, res) => {
   try {
-    const response = await database.collection("lectureDetails").find({view : {$gt : 0}}).toArray();
+    const response = await database.collection("contentDetails").find({ view: { $gt: 0 } }).toArray();
     res.status(200).send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in mostWatched:", error);
@@ -165,7 +165,7 @@ app.get("/contentDetails/:classId/:lec_id", authorizeToken, async (req, res) => 
       .collection("contentDetails")
       .find({ classId: classId, lec_id: lec_id })
       .toArray();
-    
+
     res.status(200).send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in contentDetails:", error);
@@ -180,7 +180,7 @@ app.get("/content/:classId/:lec_id/:content_id", authorizeToken, async (req, res
       .collection("contentDetails")
       .find({ _id: new ObjectId(content_id) })
       .toArray();
-    
+
     res.status(200).send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in content:", error);
@@ -193,12 +193,12 @@ app.get("/notifications", authorizeToken, async (req, res) => {
     const response = await database.collection("notifications").find({}).toArray();
     const token = req.headers.authorization.substring("Bearer ".length);
     const userData = await verifyTokenAndFetchUser(token);
-    
+
     if (response && userData) {
       const filteredResponse = response.filter(
         (notification) => notification.authorId !== userData.userId
       );
-      
+
       res.status(200).send({ status: 200, response: filteredResponse });
     } else {
       res.status(200).send({ status: 200, response: "Something went wrong" });
@@ -222,10 +222,10 @@ app.get("/contentDetails", authorizeToken, async (req, res) => {
 app.post("/search_contentDetails", authorizeToken, async (req, res) => {
   try {
     const { searchText } = req.body;
-    
+
     // Using a regular expression for case-insensitive search
     const query = { "content_title": { $regex: new RegExp(searchText, 'i') } };
-    
+
     // Fetching data from MongoDB
     const response = await database.collection("contentDetails").find(query).toArray();
 
@@ -653,7 +653,7 @@ const storage = multer.diskStorage({
 });
 
 // Configure multer to specify where to store uploaded files
-const upload = multer({ storage:multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Route to handle file upload
 app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
@@ -701,10 +701,10 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
           req.body.content == "document"
             ? "document-text-outline"
             : "" || req.body.content == "video"
-            ? "play-circle-outline"
-            : "" || req.body.content == "audio"
-            ? "musical-notes-outline"
-            : "",
+              ? "play-circle-outline"
+              : "" || req.body.content == "audio"
+                ? "musical-notes-outline"
+                : "",
         info: `Teacher ${body.author} uploaded a new ${req.body.content}`,
         content: req.body.content,
         classId: req.body.classId,
@@ -728,7 +728,7 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
   }
 });
 
-app.post("/upsertContentDetails", authorizeToken, async (req, res) => {});
+app.post("/upsertContentDetails", authorizeToken, async (req, res) => { });
 
 // Google signup
 // Configure Google OAuth Strategy
