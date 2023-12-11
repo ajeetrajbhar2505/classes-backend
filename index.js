@@ -147,7 +147,8 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
         if (existingUserIndex !== -1) {
           // If the user exists, update the multipleAttemptCount
           const updateOperation = {
-            $inc: { [`users.${existingUserIndex}.multipleAttemptCount`]: 1 }
+            $inc: { [`users.${existingUserIndex}.multipleAttemptCount`]: 1 },
+            $set: { [`users.${existingUserIndex}.time`]: new Date().toISOString() }
           };
 
           await database.collection("quizes").updateOne(filter, updateOperation);
