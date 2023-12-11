@@ -139,34 +139,48 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
     const existingDocument = await database.collection("quizes").findOne({ _id: paperId });
 
     if (existingDocument) {
-      // Check if the user already exists in the quiz
-      const existingUser = (existingDocument.users || []).find(u => u.userId === user.userId);
+      // Check if the users array exists
+      if (existingDocument.users) {
+        // Check if the user already exists in the quiz
+        const existingUser = existingDocument.users.find(u => u.userId === user.userId);
 
-      if (existingUser) {
-        // If the user exists, update the multipleAttemptCount
-        const updateOperation = {
-          $inc: { "users.$.multipleAttemptCount": 1 }
-        };
+        if (existingUser) {
+          // If the user exists, update the multipleAttemptCount
+          const updateOperation = {
+            $inc: { "users.$.multipleAttemptCount": 1 }
+          };
 
-        await database.collection("quizes").updateOne(
-          { _id: paperId, "users.userId": user.userId },
-          updateOperation
-        );
-      } else {
-        // If the user doesn't exist, add the new user
-        const pushOperation = {
-          $push: {
-            users: {
-              userId: user.userId,
-              multipleAttemptCount: 1
+          await database.collection("quizes").updateOne(
+            { _id: paperId, "users.userId": user.userId },
+            updateOperation
+          );
+        } else {
+          // If the user doesn't exist, add the new user
+          const pushOperation = {
+            $push: {
+              users: {
+                userId: user.userId,
+                multipleAttemptCount: 1
+              }
             }
-          }
+          };
+
+          await database.collection("quizes").updateOne(
+            { _id: paperId },
+            pushOperation
+          );
+        }
+      } else {
+        // If the users array doesn't exist, create it with the user
+        const insertOperation = {
+          _id: paperId,
+          users: [{
+            userId: user.userId,
+            multipleAttemptCount: 1
+          }]
         };
 
-        await database.collection("quizes").updateOne(
-          { _id: paperId },
-          pushOperation
-        );
+        await database.collection("quizes").insertOne(insertOperation);
       }
     } else {
       // If the document doesn't exist, create it with the user
@@ -187,6 +201,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
+
 
 
 
