@@ -136,7 +136,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
 
   try {
     // Check if the document exists
-    const existingDocument = await database.collection("quiz").findOne({ _id: paperId });
+    const existingDocument = await database.collection("quizes").findOne({ _id: paperId });
 
     if (existingDocument) {
       // Check if the user already exists in the quiz
@@ -148,7 +148,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
           $inc: { "users.$.multipleAttemptCount": 1 }
         };
 
-        await database.collection("quiz").updateOne(
+        await database.collection("quizes").updateOne(
           { _id: paperId, "users.userId": user.userId },
           updateOperation
         );
@@ -163,7 +163,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
           }
         };
 
-        await database.collection("quiz").updateOne(
+        await database.collection("quizes").updateOne(
           { _id: paperId },
           pushOperation
         );
@@ -178,7 +178,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
         }]
       };
 
-      await database.collection("quiz").insertOne(insertOperation);
+      await database.collection("quizes").insertOne(insertOperation);
     }
 
     res.status(200).send({ status: 200, response: "User updated/added successfully" });
