@@ -205,7 +205,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
 app.post("/upsertUsersResponse", authorizeToken, async (req, res) => {
   const user = req.body.userProfile;
   const paperId = new ObjectId(req.body.paperId);
-  const { scored, totalMarks } = req.body;
+  const { scored, totalMarks } = user;
 
   try {
     const filter = { _id: paperId };
