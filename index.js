@@ -107,6 +107,17 @@ app.get("/mostWatched", authorizeToken, async (req, res) => {
   }
 });
 
+app.get("/lectureDetails", authorizeToken, async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const response = await database.collection("lectureDetails").find({}).toArray();
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in lectureDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
+
 app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
   try {
     const { classId } = req.params;
