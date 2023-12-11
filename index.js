@@ -202,6 +202,40 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
 });
 
 
+app.post("/upsertUsersResponse", authorizeToken, async (req, res) => {
+  const user = req.body.userProfile;
+  const paperId = new ObjectId(req.body.paperId);
+  const { scored, totalMarks } = req.body;
+
+  try {
+    const filter = { _id: paperId };
+    const updateOperation = {
+      $set: {
+        [`users.$[elem].scored`]: scored,
+        [`users.$[elem].totalMarks`]: totalMarks
+      },
+    };
+    const arrayFilters = [{ "elem.userId": user.userId }];
+
+    const result = await database.collection("quizes").updateOne(
+      filter,
+      updateOperation,
+      { upsert: true, arrayFilters: arrayFilters }
+    );
+
+    if (result.modifiedCount === 0 && result.upsertedCount === 0) {
+      // If neither modified nor upserted, it means the document already existed with the same values
+      res.status(200).send({ status: 200, response: "User already existed with the same values" });
+    } else {
+      res.status(200).send({ status: 200, response: "User updated/added successfully" });
+    }
+  } catch (error) {
+    console.error("Error in upsertUsersResponse:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
+
+
 
 
 app.get("/contentDetails/:classId/:lec_id", authorizeToken, async (req, res) => {
