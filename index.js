@@ -208,7 +208,6 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   try {
     const updateOperation = {
       $inc: { view: 1 },
-      $push: { viewers: viewer },
       $pull: { viewers: { userId: viewer.userId } }, // Remove existing viewer
       $push: { viewers: viewer }, // Add the new viewer
     };
