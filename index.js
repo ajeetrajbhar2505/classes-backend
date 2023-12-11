@@ -204,38 +204,30 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
 
 app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   const contentId = new ObjectId(req.body.contentId);
-  const viewer = req.body.userProfile
+  const viewer = req.body.userProfile;
+
   try {
-    const updateOperation = {
-      $inc: { view: 1 },
-      $pull: { viewers: { userId: viewer.userId } }, // Remove existing viewer
-      $push: { viewers: viewer }, // Add the new viewer
+    // Remove existing viewer
+    const pullOperation = {
+      $pull: { viewers: { userId: viewer.userId } }
     };
-      // Remove existing viewer
-      const pullOperation = {
-        $pull: { viewers: { userId: viewer.userId } }
-      };
-  
-      await database.collection("contentDetails").updateOne(
-        { _id: contentId },
-        pullOperation
-      );
-  
-      // Add the new viewer
-      const pushOperation = {
-        $inc: { view: 1 },
-        $pull: { viewers: { userId: viewer.userId } }, // Remove existing viewer
-        $push: { viewers: viewer }, // Add the new viewer
-        $push: { viewers: viewer }
-      };
-  
-      let response = await database.collection("contentDetails").updateOne(
-        { _id: contentId },
-        updateOperation,
-        pushOperation,
-        { upsert: true }
-      );
-    
+
+    await database.collection("contentDetails").updateOne(
+      { _id: contentId },
+      pullOperation
+    );
+
+    // Add the new viewer
+    const pushOperation = {
+      $inc: { view: 1 },
+      $push: { viewers: viewer } // Add the new viewer
+    };
+
+    let response = await database.collection("contentDetails").updateOne(
+      { _id: contentId },
+      pushOperation,
+      { upsert: true }
+    );
 
     if (response.modifiedCount === 1) {
       res.status(200).send({ status: 200, response: response });
@@ -245,6 +237,7 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
+
 
 
 app.post("/upsertUsersResponse", authorizeToken, async (req, res) => {
