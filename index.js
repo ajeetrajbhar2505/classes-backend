@@ -131,12 +131,12 @@ app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
 
 app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
   const user = req.body.userProfile;
-  const contentId = new ObjectId(req.body.contentId);
+  const paperId = new ObjectId(req.body.paperId);
 
   try {
     // Check if the user already exists in the quiz
     const existingUser = await database.collection("quiz").findOne(
-      { _id: contentId, "users.userId": user.userId }
+      { _id: paperId, "users.userId": user.userId }
     );
 
     if (existingUser) {
@@ -146,7 +146,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
       };
 
       await database.collection("quiz").updateOne(
-        { _id: contentId, "users.userId": user.userId },
+        { _id: paperId, "users.userId": user.userId },
         updateOperation
       );
     } else {
@@ -161,7 +161,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
       };
 
       await database.collection("quiz").updateOne(
-        { _id: contentId },
+        { _id: paperId },
         pushOperation,
         { upsert: true }
       );
