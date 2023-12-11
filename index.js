@@ -140,7 +140,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
 
     if (existingDocument) {
       // Check if the user already exists in the quiz
-      const existingUser = existingDocument.users.find(u => u.userId === user.userId);
+      const existingUser = (existingDocument.users || []).find(u => u.userId === user.userId);
 
       if (existingUser) {
         // If the user exists, update the multipleAttemptCount
