@@ -142,19 +142,22 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
     if (existingDocument) {
       // Check if the users array exists
       if (existingDocument.users) {
-        const existingUser = existingDocument.users.find(u => u.userId === user.userId);
+        const existingUserIndex = existingDocument.users.findIndex(u => u.userId === user.userId);
 
-        if (existingUser) {
+        if (existingUserIndex !== -1) {
+          // If the user exists, update the multipleAttemptCount
           const updateOperation = {
-            $inc: { "users.$.multipleAttemptCount": 1 }
+            $inc: { [`users.${existingUserIndex}.multipleAttemptCount`]: 1 }
           };
 
           await database.collection("quizes").updateOne(filter, updateOperation);
         } else {
+          // If the user doesn't exist, add the new user
           const pushOperation = {
             $push: {
               users: {
                 userId: user.userId,
+                time: new Date().toISOString(),
                 multipleAttemptCount: 1
               }
             }
@@ -163,10 +166,12 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
           await database.collection("quizes").updateOne(filter, pushOperation);
         }
       } else {
+        // If the users array doesn't exist, create it with the user
         const setOperation = {
           $set: {
             users: [{
               userId: user.userId,
+              time: new Date().toISOString(),
               multipleAttemptCount: 1
             }]
           }
@@ -175,10 +180,12 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
         await database.collection("quizes").updateOne(filter, setOperation);
       }
     } else {
+      // If the document doesn't exist, create it with the user
       const insertOperation = {
         _id: paperId,
         users: [{
           userId: user.userId,
+          time: new Date().toISOString(),
           multipleAttemptCount: 1
         }]
       };
@@ -192,6 +199,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
+
 
 
 
