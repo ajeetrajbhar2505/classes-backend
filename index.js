@@ -118,38 +118,47 @@ app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
   }
 });
 
-app.post("/upsertViewCount", authorizeToken, async (req, res) => {
-  const viewer = req.body.userProfile;
+app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
+  const user = req.body.userProfile;
   const contentId = new ObjectId(req.body.contentId);
 
   try {
-    // Remove existing viewer
-    const pullOperation = {
-      $pull: { viewers: { userId: viewer.userId } }
-    };
-
-    await database.collection("contentDetails").updateOne(
-      { _id: contentId },
-      pullOperation
+    // Check if the user already exists in the quiz
+    const existingUser = await database.collection("quiz").findOne(
+      { _id: contentId, "users.userId": user.userId }
     );
 
-    // Add the new viewer
-    const pushOperation = {
-      $inc: { view: 1 },
-      $push: { viewers: viewer }
-    };
+    if (existingUser) {
+      // If the user exists, update the multipleAttemptCount
+      const updateOperation = {
+        $inc: { "users.$.multipleAttemptCount": 1 }
+      };
 
-    let response = await database.collection("contentDetails").updateOne(
-      { _id: contentId },
-      pushOperation,
-      { upsert: true }
-    );
+      await database.collection("quiz").updateOne(
+        { _id: contentId, "users.userId": user.userId },
+        updateOperation
+      );
+    } else {
+      // If the user doesn't exist, add the new user
+      const pushOperation = {
+        $push: {
+          users: {
+            userId: user.userId,
+            multipleAttemptCount: 1
+          }
+        }
+      };
 
-    if (response.modifiedCount === 1) {
-      res.status(200).send({ status: 200, response: response });
+      await database.collection("quiz").updateOne(
+        { _id: contentId },
+        pushOperation,
+        { upsert: true }
+      );
     }
+
+    res.status(200).send({ status: 200, response: "User updated/added successfully" });
   } catch (error) {
-    console.error("Error in upsertViewCount:", error);
+    console.error("Error in upsertAttemptedUsers:", error);
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
