@@ -204,6 +204,7 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
 
 app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   const contentId = new ObjectId(req.body.contentId);
+  const viewer = req.body.userProfile
   try {
     const updateOperation = {
       $inc: { view: 1 },
