@@ -242,7 +242,7 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
 
 app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
   try {
-    const result = database.collection('lectureDetails').aggregate(
+    const result = await database.collection('lectureDetails').aggregate(
       [
         {
           '$project': {
@@ -263,7 +263,7 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
         }
       ]
     )
-
+    console.log(result);
     res.status(200).send({ status: 200, response: result });
   }
   catch (error) {
