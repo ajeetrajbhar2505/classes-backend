@@ -299,7 +299,6 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
     
 
 
-    console.log(result);
     res.status(200).send({ status: 200, response: result });
   } catch (error) {
     console.error("Error in fetching popular lecture details:", error);
