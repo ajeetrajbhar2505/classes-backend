@@ -247,9 +247,7 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
     const result = await database.collection('lectureDetails').aggregate([
       {
         $project: {
-          lec_id: {
-            '$toString': '$_id'
-          },
+          lec_id: { '$toString': '$_id' },
           lec_icon: 1,
           lec_title: 1,
           classId: 1
@@ -267,19 +265,23 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
         $unwind: '$quizDetails'
       },
       {
+        $unwind: '$quizDetails.users'
+      },
+      {
         $group: {
           _id: '$_id',
           lec_id: { $first: '$lec_id' },
           lec_icon: { $first: '$lec_icon' },
           lec_title: { $first: '$lec_title' },
           classId: { $first: '$classId' },
-          quizDetails: { $push: '$quizDetails' }
+          quizDetails: { $push: '$quizDetails' },
+          uniqueUsers: { $addToSet: '$quizDetails.users' }
         }
       },
       {
         $addFields: {
           quizDetailsCount: { $size: '$quizDetails' },
-          usersCount: { $sum: { $map: { input: '$quizDetails.users', as: 'user', in: 1 } } }
+          usersCount: { $size: '$uniqueUsers' }
         }
       },
       {
@@ -290,11 +292,11 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
           classId: 1,
           quizDetailsCount: 1,
           usersCount: 1,
-          quizDetails : 1
+          quizDetails: 1
         }
       },
-    ]).toArray()
-
+    ]).toArray();
+    
 
 
     console.log(result);
