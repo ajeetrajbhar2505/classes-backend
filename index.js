@@ -240,7 +240,7 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   }
 });
 
-app.post("/popular_lectureDetails", authorizeToken, async (req, res) => {
+app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
   try {
     const result = database.collection('lectureDetails').aggregate(
       [
