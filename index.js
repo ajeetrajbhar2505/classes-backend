@@ -202,6 +202,8 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
 });
 
 
+
+
 app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   const contentId = new ObjectId(req.body.contentId);
   const viewer = req.body.userProfile;
@@ -238,7 +240,62 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   }
 });
 
+app.post("/popular_lectureDetails", authorizeToken, async (req, res) => {
+  try {
+    const result = database.collection('lectureDetails').aggregate(
+      [
+        {
+          '$project': {
+            'lec_id': {
+              '$toString': '$_id'
+            },
+            'lec_icon': 1,
+            'lec_title': 1,
+            'classId': 1
+          }
+        }, {
+          '$lookup': {
+            'from': 'quizes',
+            'localField': 'lec_id',
+            'foreignField': 'lec_id',
+            'as': 'quizDetails'
+          }
+        }
+      ]
+    )
+
+    res.status(200).send({ status: 200, response: result });
+  }
+  catch (error) {
+    console.error("Error in upsertViewCount:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+})
+
+
 app.post("/upsertWatchTime", authorizeToken, async (req, res) => {
+  database.collection('lectureDetails').aggregate(
+    [
+      {
+        '$project': {
+          'lec_id': {
+            '$toString': '$_id'
+          },
+          'lec_icon': 1,
+          'lec_title': 1,
+          'classId': 1
+        }
+      }, {
+        '$lookup': {
+          'from': 'quizes',
+          'localField': 'lec_id',
+          'foreignField': 'lec_id',
+          'as': 'quizDetails'
+        }
+      }
+    ]
+  )
+
   const contentId = new ObjectId(req.body.contentId);
   const viewer = req.body.userProfile;
 
