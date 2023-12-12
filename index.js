@@ -241,6 +241,55 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
 });
 
 
+
+app.get("/scoreCard", authorizeToken, async (req, res) => {
+  try {
+
+    
+    const result = await database.collection('users').aggregate([
+      {
+          '$project': {
+              'user_id': {
+                  '$toString': '$_id'
+              },
+              'picture': 1,
+              'email': 1,
+              'name': 1,
+              'address1': 1
+          }
+      },
+      {
+          '$lookup': {
+              'from': 'quizes',
+              'let': { 'user_id': '$user_id' },
+              'pipeline': [
+                  {
+                      '$unwind': '$users'
+                  },
+                  {
+                      '$match': {
+                          '$expr': {
+                              '$eq': ['$users.userId', '$$user_id']
+                          }
+                      }
+                  }
+              ],
+              'as': 'quizAttempts'
+          }
+      }
+  ]).toArray();
+  
+    
+
+
+    res.status(200).send({ status: 200, response: result });
+  } catch (error) {
+    console.error("Error in fetching popular lecture details:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
+
+
 app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
   try {
 
