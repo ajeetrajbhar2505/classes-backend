@@ -248,21 +248,20 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
           '$project': {
             'lec_id': {
               '$toString': '$_id'
-            },
-            'lec_icon': 1,
-            'lec_title': 1,
-            'classId': 1
+            }
           }
         }, {
           '$lookup': {
-            'from': 'quizes',
-            'localField': 'lec_id',
-            'foreignField': 'lec_id',
-            'as': 'quizDetails'
+            'from': 'quizes', 
+            'localField': 'lec_id', 
+            'foreignField': 'lec_id', 
+            'as': 'lectureDetails'
           }
+        }, {
+          '$unwind': '$lectureDetails'
         }
-      ]
-    )
+      
+      ])
     console.log(result);
     res.status(200).send({ status: 200, response: result });
   }
