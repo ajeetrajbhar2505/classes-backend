@@ -289,7 +289,8 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
           lec_title: 1,
           classId: 1,
           quizDetailsCount: 1,
-          usersCount: 1
+          usersCount: 1,
+          quizDetails : 1
         }
       },
     ]).toArray()
