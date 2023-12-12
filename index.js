@@ -240,60 +240,73 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
   }
 });
 
+
 app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
   try {
-    const result = await database.collection('lectureDetails').aggregate(
-      [
-        {
-          '$project': {
-            'lec_id': {
-              '$toString': '$_id'
-            }
-          }
-        }, {
-          '$lookup': {
-            'from': 'quizes', 
-            'localField': 'lec_id', 
-            'foreignField': 'lec_id', 
-            'as': 'lectureDetails'
-          }
-        }, {
-          '$unwind': '$lectureDetails'
+
+    const result = await database.collection('lectureDetails').aggregate([
+      {
+        $project: {
+          lec_id: {
+            '$toString': '$_id'
+          },
+          lec_icon: 1,
+          lec_title: 1,
+          classId: 1
         }
-      
-      ])
+      },
+      {
+        $lookup: {
+          from: 'quizes',
+          localField: 'lec_id',
+          foreignField: 'lec_id',
+          as: 'quizDetails'
+        }
+      },
+      {
+        $unwind: '$quizDetails'
+      },
+      {
+        $group: {
+          _id: '$_id',
+          lec_id: { $first: '$lec_id' },
+          lec_icon: { $first: '$lec_icon' },
+          lec_title: { $first: '$lec_title' },
+          classId: { $first: '$classId' },
+          quizDetails: { $push: '$quizDetails' }
+        }
+      },
+      {
+        $addFields: {
+          quizDetailsCount: { $size: '$quizDetails' },
+          usersCount: { $sum: { $map: { input: '$quizDetails.users', as: 'user', in: 1 } } }
+        }
+      },
+      {
+        $project: {
+          lec_id: 1,
+          lec_icon: 1,
+          lec_title: 1,
+          classId: 1,
+          quizDetailsCount: 1,
+          usersCount: 1
+        }
+      },
+    ]).toArray()
+
+
+
     console.log(result);
     res.status(200).send({ status: 200, response: result });
-  }
-  catch (error) {
-    console.error("Error in upsertViewCount:", error);
+  } catch (error) {
+    console.error("Error in fetching popular lecture details:", error);
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
-})
+});
+
 
 
 app.post("/upsertWatchTime", authorizeToken, async (req, res) => {
-  database.collection('lectureDetails').aggregate(
-    [
-      {
-        '$project': {
-          'lec_id': {
-            '$toString': '$_id'
-          },
-          'lec_icon': 1,
-          'lec_title': 1,
-          'classId': 1
-        }
-      }, {
-        '$lookup': {
-          'from': 'quizes',
-          'localField': 'lec_id',
-          'foreignField': 'lec_id',
-          'as': 'quizDetails'
-        }
-      }
-    ]
-  )
 
   const contentId = new ObjectId(req.body.contentId);
   const viewer = req.body.userProfile;
