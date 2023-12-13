@@ -255,7 +255,7 @@ app.get("/scoreCard", authorizeToken, async (req, res) => {
               'picture': 1,
               'email': 1,
               'name': 1,
-              'address1': 1
+              'address1': 1 
           }
       },
       {
