@@ -597,7 +597,7 @@ app.post("/upsertUserQuerries", async (req, res) => {
 
     if (response.insertedCount > 0) {
       // Send the query as a response
-      io.emit(body.contentId, body);
+      // io.emit(body.contentId, body);
 
       // Create a notification object and insert it into the "notifications" collection
       const notification = Object.assign(notificationsBody, {
@@ -611,7 +611,7 @@ app.post("/upsertUserQuerries", async (req, res) => {
       const notificationResponse = await database
         .collection("notifications")
         .insertOne(notification);
-      io.emit("notification", notification);
+      // io.emit("notification", notification);
 
       res.status(200).send({ status: 200, response: "Message sent successfully!" });
     } else {
@@ -659,7 +659,7 @@ app.post("/upsertTeacherResponse", async (req, res) => {
 
         if (updatedDocument) {
           // Send the updated document as a response to the user
-          io.emit(body.contentId, updatedDocument);
+          // io.emit(body.contentId, updatedDocument);
 
           // Create a notification object and insert it into the "notifications" collection
           const notification = Object.assign(notificationsBody, {
@@ -673,7 +673,7 @@ app.post("/upsertTeacherResponse", async (req, res) => {
           let notificationResponse = await database
             .collection("notifications")
             .insertOne(notification);
-          io.emit("notification", notification);
+          // io.emit("notification", notification);
           res.send({ status: 200, message: "Content gone live successfully!" });
         } else {
           // Handle the case when the document retrieval fails
@@ -695,28 +695,28 @@ app.post("/upsertTeacherResponse", async (req, res) => {
 });
 
 // Integrate Server
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
+// const server = http.createServer(app);
+// const { Server } = require("socket.io");
+// const io = new Server(server);
 
-io.on("connection", (socket) => {
-  // Emit a message to the client
-  socket.on("message", (msg) => {
-    io.emit("message", msg);
-  });
+// io.on("connection", (socket) => {
+//   // Emit a message to the client
+//   socket.on("message", (msg) => {
+//     io.emit("message", msg);
+//   });
 
-  socket.on("notification", (msg) => {
-    io.emit("notification", msg);
-  });
+//   socket.on("notification", (msg) => {
+//     io.emit("notification", msg);
+//   });
 
-  socket.on("live", (msg) => {
-    io.emit("live", msg);
-  });
+//   socket.on("live", (msg) => {
+//     io.emit("live", msg);
+//   });
 
-  socket.on("credentials", (msg) => {
-    io.emit("credentials", msg);
-  });
-});
+//   socket.on("credentials", (msg) => {
+//     io.emit("credentials", msg);
+//   });
+// });
 
 server.listen(process.env.PORT, connectToMongoDB(), () => {
   console.log("app running faster");
@@ -990,7 +990,7 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
       let notificationResponse = await database
         .collection("notifications")
         .insertOne(notificationObject);
-      io.emit("notification", notificationObject);
+      // io.emit("notification", notificationObject);
       res.send({ status: 200, response: "Content uploaded sucessfully" });
     } else {
       res.send({ status: 400, response: "something went wrong" });
