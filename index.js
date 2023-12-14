@@ -1266,6 +1266,7 @@ async function generateToken(tokenData) {
       userId: tokenData.userId,
       email: tokenData.email,
       dateTime: tokenData.dateTime,
+      otp : this.generateOTP()
     });
   } catch (error) {
     throw error;
