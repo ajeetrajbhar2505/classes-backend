@@ -129,7 +129,19 @@ app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
   }
 });
 
-
+app.post("/upsertGroup", authorizeToken, async (req, res) => {
+  try {
+    const data = {
+      classNamme : req.body.name,
+      std_icon : 'assets/std_icon.webp'
+    }
+    const response = await database.collection("classDetails").insertOne(data)
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in lectureDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
 
 app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
   const user = req.body.userProfile;
