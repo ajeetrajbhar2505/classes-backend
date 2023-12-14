@@ -151,7 +151,6 @@ app.post("/upsertLecture", authorizeToken, async (req, res) => {
     } else {
       res.status(200).send({ status: 200, response: "Something went wrong" });
     }
-    res.status(200).send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in lectureDetails:", error);
     res.status(500).send({ status: 500, error: "Internal Server Error" });
