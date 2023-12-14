@@ -145,7 +145,7 @@ app.post("/upsertGroup", authorizeToken, async (req, res) => {
 
 app.post("/upsertLecture", authorizeToken, async (req, res) => {
   try {
-    const response = await database.collection("lectureDetails").insertOne(data)
+    const response = await database.collection("lectureDetails").insertOne(req.body)
     if (response.insertedCount > 0) {
       res.status(200).send({ status: 200, response: response.ops });
     } else {
