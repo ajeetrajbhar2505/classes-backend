@@ -354,41 +354,41 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
 app.get("/scoreCard", authorizeToken, async (req, res) => {
   try {
 
-    
+
     const result = await database.collection('users').aggregate([
       {
-          '$project': {
-              'user_id': {
-                  '$toString': '$_id'
-              },
-              'picture': 1,
-              'email': 1,
-              'name': 1,
-              'address1': 1 
-          }
+        '$project': {
+          'user_id': {
+            '$toString': '$_id'
+          },
+          'picture': 1,
+          'email': 1,
+          'name': 1,
+          'address1': 1
+        }
       },
       {
-          '$lookup': {
-              'from': 'quizes',
-              'let': { 'user_id': '$user_id' },
-              'pipeline': [
-                  {
-                      '$unwind': '$users'
-                  },
-                  {
-                      '$match': {
-                          '$expr': {
-                              '$eq': ['$users.userId', '$$user_id']
-                          }
-                      }
-                  }
-              ],
-              'as': 'quizAttempts'
-          }
+        '$lookup': {
+          'from': 'quizes',
+          'let': { 'user_id': '$user_id' },
+          'pipeline': [
+            {
+              '$unwind': '$users'
+            },
+            {
+              '$match': {
+                '$expr': {
+                  '$eq': ['$users.userId', '$$user_id']
+                }
+              }
+            }
+          ],
+          'as': 'quizAttempts'
+        }
       }
-  ]).toArray();
-  
-    
+    ]).toArray();
+
+
 
 
     res.status(200).send({ status: 200, response: result });
@@ -454,7 +454,7 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
         }
       },
     ]).toArray();
-    
+
 
 
     res.status(200).send({ status: 200, response: result });
@@ -565,13 +565,57 @@ app.get("/contentDetails/:classId/:lec_id", authorizeToken, async (req, res) => 
   }
 });
 
-app.get("/content/:classId/:lec_id/:content_id", authorizeToken, async (req, res) => {
+app.get("/content/:content_id", authorizeToken, async (req, res) => {
   try {
-    const { classId, lec_id, content_id } = req.params;
+    const { content_id } = req.params;
     const response = await database
       .collection("contentDetails")
-      .find({ _id: new ObjectId(content_id) })
-      .toArray();
+      .aggregate([
+        {
+          $match: {
+            "_id": new ObjectId(content_id)
+          }
+        },
+        {
+          '$project': {
+            'content_id': {
+              '$toString': '$_id'
+            },
+            classId: 1,
+            lec_id: 1,
+            content_icon: 1,
+            content_link: 1,
+            content_title: 1,
+            content: 1,
+            published_at: 1,
+            author: 1,
+            authorId: 1,
+          }
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "viewers.userId",
+            foreignField: "content_id",
+            as: "viewerDetails"
+          }
+        },{
+          $project: {
+            _id: 1,
+            classId: 1,
+            lec_id: 1,
+            content_icon: 1,
+            content_link: 1,
+            content_title: 1,
+            content: 1,
+            published_at: 1,
+            author: 1,
+            authorId: 1,
+            'viewerDetails.name': 1, 
+            'viewerDetails.picture': 1  
+          }
+        }
+      ]).toArray()
 
     res.status(200).send({ status: 200, response: response });
   } catch (error) {
@@ -1359,7 +1403,7 @@ async function generateToken(tokenData) {
       userId: tokenData.userId,
       email: tokenData.email,
       dateTime: tokenData.dateTime,
-      otp : this.generateOTP()
+      otp: this.generateOTP()
     });
   } catch (error) {
     throw error;
