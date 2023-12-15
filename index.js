@@ -229,43 +229,75 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
 
 
 
-
 app.post("/upsertViewCount", authorizeToken, async (req, res) => {
+  const user = req.body.userProfile;
   const contentId = new ObjectId(req.body.contentId);
-  const viewer = req.body.userProfile;
 
   try {
-    // Remove existing viewer
-    const pullOperation = {
-      $pull: { viewers: { userId: viewer.userId } }
-    };
+    const filter = { _id: contentId };
+    const existingDocument = await database.collection("contentDetails").findOne(filter);
 
-    await database.collection("contentDetails").updateOne(
-      { _id: contentId },
-      pullOperation
-    );
+    if (existingDocument) {
+      // Check if the users array exists
+      if (existingDocument.viewers) {
+        const existingUserIndex = existingDocument.viewers.findIndex(u => u.userId === user.userid);
 
-    // Add the new viewer
-    const pushOperation = {
-      $inc: { view: 1 },
-      $push: { viewers: viewer } // Add the new viewer
-    };
+        if (existingUserIndex !== -1) {
+          // If the user exists, update the multipleWatchcount
+          const updateOperation = {
+            $inc: { [`viewers.${existingUserIndex}.multipleWatchcount`]: 1 },
+            $set: { [`viewers.${existingUserIndex}.datetime`]: new Date().toISOString() }
+          };
 
-    let response = await database.collection("contentDetails").updateOne(
-      { _id: contentId },
-      pushOperation,
-      { upsert: true }
-    );
+          await database.collection("contentDetails").updateOne(filter, updateOperation);
+        } else {
+          // If the user doesn't exist, add the new user
+          const pushOperation = {
+            $push: {
+              viewers: {
+                userId: user.userid,
+                datetime: new Date().toISOString(),
+                multipleWatchcount: 1
+              }
+            }
+          };
 
-    if (response.modifiedCount === 1) {
-      res.status(200).send({ status: 200, response: response });
+          await database.collection("contentDetails").updateOne(filter, pushOperation);
+        }
+      } else {
+        // If the viewers array doesn't exist, create it with the user
+        const setOperation = {
+          $set: {
+            viewers: [{
+              userId: user.userid,
+              datetime: new Date().toISOString(),
+              multipleWatchcount: 1
+            }]
+          }
+        };
+
+        await database.collection("contentDetails").updateOne(filter, setOperation, { upsert: true });
+      }
+    } else {
+      // If the document doesn't exist, create it with the user
+      const insertOperation = {
+        _id: contentId,
+        viewers: [{
+          userId: user.userid,
+          datetime: new Date().toISOString(),
+          multipleAttemptCount: 1
+        }]
+      };
+
+      await database.collection("contentDetails").insertOne(insertOperation);
     }
+
+    res.status(200).send({ status: 200, response: "User updated/added successfully" });
   } catch (error) {
     console.error("Error in upsertViewCount:", error);
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
-
 
 
 app.get("/scoreCard", authorizeToken, async (req, res) => {
@@ -384,40 +416,50 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
 
 
 app.post("/upsertWatchTime", authorizeToken, async (req, res) => {
-
   const contentId = new ObjectId(req.body.contentId);
   const viewer = req.body.userProfile;
 
   try {
-    // Remove existing viewer
-    const pullOperation = {
-      $pull: { viewers: { userId: viewer.userId } }
+    // Update existing viewer based on userId
+    const updateOperation = {
+      $set: {
+        "viewers.$[element].datetime": new Date().toISOString(),
+        "viewers.$[element].watchTime": viewer.watchTime,
+        "viewers.$[element].duration": viewer.duration,
+      }
     };
 
-    await database.collection("contentDetails").updateOne(
+    const arrayFilters = [
+      { "element.userId": viewer.userid }
+    ];
+
+    const updateResponse = await database.collection("contentDetails").updateOne(
       { _id: contentId },
-      pullOperation
+      updateOperation,
+      { arrayFilters: arrayFilters }
     );
 
-    // Add the new viewer
-    const pushOperation = {
-      $push: { viewers: viewer } // Add the new viewer
-    };
+    // If no document matched for the update, add the new viewer
+    if (updateResponse.matchedCount === 0) {
+      const pushOperation = {
+        $push: { viewers: viewer } // Add the new viewer
+      };
 
-    let response = await database.collection("contentDetails").updateOne(
-      { _id: contentId },
-      pushOperation,
-      { upsert: true }
-    );
-
-    if (response.modifiedCount === 1) {
-      res.status(200).send({ status: 200, response: response });
+      await database.collection("contentDetails").updateOne(
+        { _id: contentId },
+        pushOperation,
+        { upsert: true }
+      );
     }
+
+    res.status(200).send({ status: 200, response: "Operation performed successfully" });
   } catch (error) {
-    console.error("Error in upsertViewCount:", error);
+    console.error("Error in upsertWatchTime:", error);
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
+
+
 
 
 
