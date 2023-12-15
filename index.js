@@ -99,13 +99,64 @@ app.get("/classDetails", authorizeToken, async (req, res) => {
 
 app.get("/mostWatched", authorizeToken, async (req, res) => {
   try {
-    const response = await database.collection("contentDetails").find({ view: { $gt: 0 } }).toArray();
+    const pipeline = [
+      {
+        $match: {
+          "viewers": { $exists: true, $not: { $size: 0 } }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          classId: 1,
+          lec_id: 1,
+          content_icon: 1,
+          content_link: 1,
+          content_title: 1,
+          content: 1,
+          published_at: 1,
+          author: 1,
+          authorId: 1,
+          viewers: 1
+        }
+      },
+      {
+        $unwind: "$viewers"
+      },
+      {
+        $group: {
+          _id: "$_id",
+          classId: { $first: "$classId" },
+          lec_id: { $first: "$lec_id" },
+          content_icon: { $first: "$content_icon" },
+          content_link: { $first: "$content_link" },
+          content_title: { $first: "$content_title" },
+          content: { $first: "$content" },
+          published_at: { $first: "$published_at" },
+          author: { $first: "$author" },
+          authorId: { $first: "$authorId" },
+          totalWatchcount: { $sum: "$viewers.multipleWatchcount" }
+        }
+      },
+      {
+        $match: {
+          totalWatchcount: { $gt: 0 }
+        }
+      },
+      {
+        $sort: { totalWatchcount: -1 }
+      }
+    ];
+
+    const response = await database.collection("contentDetails").aggregate(pipeline).toArray();
     res.status(200).send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in mostWatched:", error);
     res.status(500).send({ status: 500, error: "Internal Server Error" });
   }
 });
+
+
 
 app.get("/lectureDetails", authorizeToken, async (req, res) => {
   try {
