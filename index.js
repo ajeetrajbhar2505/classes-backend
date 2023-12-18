@@ -570,52 +570,16 @@ app.get("/content/:content_id", authorizeToken, async (req, res) => {
     const { content_id } = req.params;
     const response = await database
       .collection("contentDetails")
-      .aggregate([
-        {
-          $match: {
-            "_id": new ObjectId(content_id)
-          }
-        },
-        {
-          '$project': {
-            'content_id': {
-              '$toString': '$_id'
-            },
-            classId: 1,
-            lec_id: 1,
-            content_icon: 1,
-            content_link: 1,
-            content_title: 1,
-            content: 1,
-            published_at: 1,
-            author: 1,
-            authorId: 1,
-          }
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "viewers.userId",
-            foreignField: "content_id",
-            as: "viewerDetails"
-          }
-        },{
-          $project: {
-            _id: 1,
-            classId: 1,
-            lec_id: 1,
-            content_icon: 1,
-            content_link: 1,
-            content_title: 1,
-            content: 1,
-            published_at: 1,
-            author: 1,
-            authorId: 1,
-            'viewerDetails.name': 1, 
-            'viewerDetails.picture': 1  
-          }
-        }
-      ]).toArray()
+      .findOne({ _id: new ObjectId(content_id) })
+    if (response.viewers) {
+      for (let i = 0; i < response.viewers.length; i++) {
+        const viewer = response.viewers[i].userId;
+        const userResponse = await database
+          .collection("users")
+          .find({ _id: new ObjectId(viewer) }).project({ name: 1, picture: 1 }).toArray()
+        response.viewers[i] = { ...response.viewers[i], ...userResponse[0] }
+      }
+    }
 
     res.status(200).send({ status: 200, response: response });
   } catch (error) {
@@ -1043,6 +1007,7 @@ async function authorize() {
 // Create the "uploads" directory if it doesn't exist
 const uploadDirectory = "files/";
 const streamifier = require("streamifier");
+const { object } = require("webidl-conversions");
 
 
 // Function to upload a file to Google Drive
