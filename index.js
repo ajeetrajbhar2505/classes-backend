@@ -574,7 +574,7 @@ app.get("/content/:content_id", authorizeToken, async (req, res) => {
     const response = await database
       .collection("contentDetails")
       .findOne({ _id: new ObjectId(content_id) })
-    if (response.viewers) {
+    if (response && response.viewers) {
       for (let i = 0; i < response.viewers.length; i++) {
         const viewer = response.viewers[i].userId;
         const userResponse = await database
@@ -928,22 +928,43 @@ app.get("/fetchpaper/:paperId", authorizeToken, async (req, res) => {
   }
 });
 
+
 app.post("/verifyOTP", async (req, res) => {
-  const { otp } = req.body;
   try {
-    const response = await database.collection("tokens").findOne({ otp: otp });
-    if (response) {
-      return res.status(200).send({
-        status: 200,
-        response: { userId: response.userId, token: response._id.toString() },
-      });
+    const { otp } = req.body;
+
+    // Check if OTP exists in the "tokens" collection
+    const tokenResponse = await database.collection("tokens").findOne({ otp: otp });
+
+    if (tokenResponse) {
+      // If OTP is valid, retrieve user information from the "users" collection
+      const userId = tokenResponse.userId;
+      const usersResponse = await database.collection("users").findOne({ _id: new ObjectId(userId) });
+
+      if (usersResponse) {
+        // Send a successful response with user details
+        return res.status(200).send({
+          status: 200,
+          response: {
+            userId: userId,
+            token: tokenResponse._id.toString(),
+            picture: usersResponse.picture
+          },
+        });
+      } else {
+        // Handle the case where user information is not found
+        res.status(500).send({ status: 500, response: "User not found" });
+      }
     } else {
-      res.send({ status: 204, response: "OTP is Invalid" });
+      // Handle the case where the OTP is invalid
+      res.status(204).send({ status: 204, response: "OTP is invalid" });
     }
   } catch (error) {
-    res.send({ status: 500, response: "Internal server error" });
+    // Handle other errors
+    console.error(error);
+    res.status(500).send({ status: 500, response: "Internal server error" });
   }
-});
+})
 
 app.post("/Login", async (req, res) => {
   const { username, password } = req.body;
@@ -1444,20 +1465,35 @@ const verifyTokenAndFetchUser = async (token) => {
 app.post("/geminiSearch", async (req, res) => {
   try {
     const { prompt } = req.body;
-     const response  =await run(prompt)
+    const response = await run(prompt);
 
     res.status(200).send({ status: 200, response: response });
   } catch (error) {
-    console.error("Error in search_contentDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.status(200).send({ status: 200, response: 'Can not provide answer for this question'  });
   }
+
 });
 
-
 async function run(prompt) {
-  // For text-only input, use the gemini-pro model
-  const model = genAI.getGenerativeModel({ model: "gemini-pro"});
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
- return response.text();
+  try {
+    // For text-only input, use the gemini-pro model
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    // Add a check for safety-related error and throw it
+    if (isSafetyError(error)) {
+      throw new Error("SafetyError");
+    } else {
+      throw error;
+    }
+  }
+}
+
+// Example function to check if the error is related to safety concerns
+function isSafetyError(error) {
+  // Implement your logic to check if the error is related to safety concerns
+  // For example, you might check the error message or error code here
+  return error.message.includes("safety") || error.code === "SAFETY_CONCERN";
 }
