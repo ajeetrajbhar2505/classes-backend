@@ -13,6 +13,9 @@ dotenv.config();
 app.use(cors());
 
 const nodemailer = require("nodemailer");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI(process.env.gemini_api_key);
+
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -1408,3 +1411,53 @@ const verifyTokenAndFetchUser = async (token) => {
     throw error;
   }
 };
+
+
+// async function run() {
+//   // For text-only input, use the gemini-pro model
+//   const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+
+//   const chat = model.startChat({
+//     history: [
+//       {
+//         role: "user",
+//         parts: "Hello, I have 2 dogs in my house.",
+//       },
+//       {
+//         role: "model",
+//         parts: "Great to meet you. What would you like to know?",
+//       },
+//     ],
+//     generationConfig: {
+//       maxOutputTokens: 100,
+//     },
+//   });
+
+//   const msg = "How many paws are in my house?";
+
+//   const result = await chat.sendMessage(msg);
+//   const response = await result.response;
+//   const text = response.text();
+//   console.log(text);
+// }
+
+app.post("/geminiSearch", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+     const response  =await run(prompt)
+
+    res.status(200).send({ status: 200, response: response });
+  } catch (error) {
+    console.error("Error in search_contentDetails:", error);
+    res.status(500).send({ status: 500, error: "Internal Server Error" });
+  }
+});
+
+
+async function run(prompt) {
+  // For text-only input, use the gemini-pro model
+  const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+ return response.text();
+}
