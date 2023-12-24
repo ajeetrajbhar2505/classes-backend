@@ -166,6 +166,7 @@
     "setprototypeof": "^1.2.0",
     "side-channel": "^1.0.4",
     "simple-update-notifier": "^2.0.0",
+    "socket.io": "^4.7.2",
     "sparse-bitfield": "^3.0.3",
     "statuses": "^2.0.1",
     "stream": "^0.0.2",
