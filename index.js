@@ -1287,6 +1287,7 @@ app.post("/verifyOTP", async (req, res) => {
 
       if (usersResponse) {
         // Send a successful response with user details
+        await database.collection("tokens").deleteOne({ otp: otp });
         return res.status(200).send({
           status: 200,
           response: {
@@ -1295,6 +1296,7 @@ app.post("/verifyOTP", async (req, res) => {
             picture: usersResponse.picture
           },
         });
+        
       } else {
         // Handle the case where user information is not found
         res.status(500).send({ status: 500, response: "User not found" });
@@ -2022,13 +2024,13 @@ app.get(
         const userExists = await database
           .collection("users")
           .findOne({ email: req.user._json.email });
-        console.log(userExists);
+        const updatedUserDetails = {...userExists,...req.user._json,logged: true,date: Date(),}
         if (userExists) {
           await database.collection("users").updateOne(
             { _id: new ObjectId(userExists._id) },
             {
               $set:
-              { ...req.user._json, logged: true,date: Date(), }
+              { updatedUserDetails }
             },
             { upsert: true }
           );
