@@ -995,7 +995,7 @@ app.post("/Login", async (req, res) => {
       var mailOption = {
         from: "ajeetrajbhar2504@gmail.com",
         to: userExists.email,
-        subject: "A one-time password of Class App",
+        subject: "Verification Code - Class App",
         html: `<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
         <head>
@@ -1701,7 +1701,7 @@ app.get(
           var mailOption = {
             from: "ajeetrajbhar2504@gmail.com",
             to: req.user._json.email,
-            subject: "A one-time password of Class App",
+            subject: "Verification Code - Class App",
             html: `<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
             <head>
@@ -2112,7 +2112,7 @@ app.get(
           var mailOption = {
             from: "ajeetrajbhar2504@gmail.com",
             to: req.user._json.email,
-            subject: "A one-time password of Class App",
+            subject: "Verification Code - Class App",
             html: `<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
             <head>
@@ -2595,7 +2595,7 @@ app.post("/geminiSearch", async (req, res) => {
 
     res.status(200).send({ status: 200, response: response });
   } catch (error) {
-    res.status(200).send({ status: 200, response: 'Can not provide answer for this question'  });
+    res.status(200).send({ status: 200, response: 'Can not provide answer for this question' });
   }
 
 });
