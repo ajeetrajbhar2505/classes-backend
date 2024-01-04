@@ -920,8 +920,8 @@ app.post("/register", async (req, res) => {
                 
           <!--[if mso]><style>.v-button {background: transparent !important;}</style><![endif]-->
         <div align="center">
-          <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://long-pink-rooster-gear.cyclic.app/google" style="height:37px; v-text-anchor:middle; width:162px;" arcsize="11%"  stroke="f" fillcolor="#f35900"><w:anchorlock/><center style="color:#FFFFFF;"><![endif]-->
-            <a href="https://long-pink-rooster-gear.cyclic.app/google" target="_blank" class="v-button" style="box-sizing: border-box;display: inline-block;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #FFFFFF; background-color: #f35900; border-radius: 4px;-webkit-border-radius: 4px; -moz-border-radius: 4px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;font-size: 14px;">
+          <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://long-pink-rooster-gear.cyclic.app/register/callback" style="height:37px; v-text-anchor:middle; width:162px;" arcsize="11%"  stroke="f" fillcolor="#f35900"><w:anchorlock/><center style="color:#FFFFFF;"><![endif]-->
+            <a href="https://long-pink-rooster-gear.cyclic.app/register/callback" target="_blank" class="v-button" style="box-sizing: border-box;display: inline-block;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #FFFFFF; background-color: #f35900; border-radius: 4px;-webkit-border-radius: 4px; -moz-border-radius: 4px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;font-size: 14px;">
               <span style="display:block;padding:10px 20px;line-height:120%;"><span style="line-height: 16.8px;">Confirm Your Email</span></span>
             </a>
             <!--[if mso]></center></v:roundrect><![endif]-->
@@ -1337,7 +1337,7 @@ app.post("/Login", async (req, res) => {
       .findOne({ email: username,email_verified : true });
   
     if (userExists) {
-      
+
       if (!email_verified) {
         res.send({ status: 201, response: "Please verify your email" });
         return
@@ -2875,6 +2875,67 @@ app.get(
     }
   }
 );
+
+
+app.get(
+  "/register/callback",
+  passport.authenticate("google", { failureRedirect: "/" }),
+  async (req, res) => {
+    try {
+      if (req.isAuthenticated()) {
+        const otp = generateOTP();
+
+        // Check if the user exists in the database
+        const userExists = await database
+          .collection("users")
+          .findOne({ email: req.user._json.email });
+        if (userExists) {
+          await database.collection("users").updateOne(
+            { _id: new ObjectId(userExists._id) },
+            {
+              $set:
+              {...userExists,...req.user._json,logged: true,date: Date()}
+            },
+            { upsert: true }
+          );
+          // User exists, check for an token'
+          const response = await database.collection("tokens").insertOne({
+            userId: userExists._id.toString(),
+            email: req.user._json.email,
+            dateTime: new Date(),
+            otp: otp,
+          });
+
+          if (response.acknowledged) {
+            return res.sendFile(__dirname + `/public/register.html`);
+          }else{
+            return res.sendFile(__dirname + "/public/index.html");
+          }
+
+        } else {
+          // User doesn't exist, create a new user
+          const response = await database
+            .collection("users")
+            .insertOne({ ...req.user._json, logged: true });
+
+            if (response.acknowledged) {
+              return res.sendFile(__dirname + `/public/register.html`);
+            }else{
+              return res.sendFile(__dirname + "/public/index.html");
+            }
+        }
+      } else {
+        // User is not authenticated, handle accordingly
+        return res.status(401).send("User not authenticated");
+      }
+    } catch (error) {
+      // Handle any errors that may occur during token generation or database operations
+      console.error("Error in Google callback:", error);
+      return res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
 
 // Function to generate a JWT token (you should implement this)
 async function generateToken(tokenData) {
