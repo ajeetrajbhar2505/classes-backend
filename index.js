@@ -1908,7 +1908,7 @@ passport.use(
     {
       clientID: process.env.OAuth_client_id,
       clientSecret: process.env.OAuth_Client_secret,
-      callbackURL: OAuth_google_Callback_url, // This is a placeholder, will be dynamically set in the strategy callback
+      callbackURL: Oprocess.env.Auth_google_Callback_url, // This is a placeholder, will be dynamically set in the strategy callback
       scope: "email",
       passReqToCallback: true, // This allows you to access the request object in the verify callback
     },
@@ -1920,7 +1920,7 @@ passport.use(
             ? process.env.OAuth_google_Callback_url
             : req.path === "/register/callback"
             ? process.env.OAuth_register_Callback_url
-            : OAuth_google_Callback_url; // Default to root if the path is unknown
+            : process.env.OAuth_google_Callback_url; // Default to root if the path is unknown
 
         // Update the strategy's callbackURL
         passport._strategies.google._callbackURL = callbackURL;
