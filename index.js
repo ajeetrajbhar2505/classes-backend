@@ -2024,13 +2024,12 @@ app.get(
         const userExists = await database
           .collection("users")
           .findOne({ email: req.user._json.email });
-        const updatedUserDetails = {...userExists,...req.user._json,logged: true,date: Date(),}
         if (userExists) {
           await database.collection("users").updateOne(
             { _id: new ObjectId(userExists._id) },
             {
               $set:
-              { updatedUserDetails }
+              {...userExists,...req.user._json,logged: true,date: Date()}
             },
             { upsert: true }
           );
