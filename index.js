@@ -1326,10 +1326,23 @@ app.post("/verifyOTP", async (req, res) => {
 app.post("/Login", async (req, res) => {
   const { username, password } = req.body;
   try {
+
+ 
     const userExists = await database
       .collection("users")
       .findOne({ email: username, password: password });
+
+      const email_verified = await database
+      .collection("users")
+      .findOne({ email: username,email_verified : true });
+  
     if (userExists) {
+      
+      if (!email_verified) {
+        res.send({ status: 201, response: "Please verify your email" });
+        return
+       }
+
       const otp = generateOTP();
       await database.collection("users").updateOne(
         { _id: new ObjectId(userExists._id) },
