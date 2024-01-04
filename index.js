@@ -696,6 +696,14 @@ app.post("/register", async (req, res) => {
         res.status(200).json({ status: 201, response: "User already exists" });
      }
 
+     
+ 
+     // If user doesn't exist, proceed with registration
+     const response = await database
+     .collection("users")
+     .insertOne(req.body);
+ 
+     if (response.acknowledged) {
  
        // Send confirmation message (assuming this is an asynchronous function)
        var mailOption = {
@@ -1040,6 +1048,10 @@ app.post("/register", async (req, res) => {
       }
       res.send({ status: 200, response: "Otp send successfully" });
     });
+
+  } else {
+    res.status(200).json({ status: 200, response: "Something went wrong" });
+ }
    
   } catch (error) {
     console.error("Error in register:", error);
