@@ -701,7 +701,7 @@ app.post("/register", async (req, res) => {
      .collection("users")
      .insertOne(req.body);
  
-     if (response.insertedCount > 0) {
+     if (response.acknowledged) {
        // Send confirmation message (assuming this is an asynchronous function)
        const sendConfirmationResponse = await sendConfirmationMessage(email);
       res.status(200).send({ status: 200, response: sendConfirmationResponse.response, });
