@@ -695,6 +695,7 @@ app.post("/register", async (req, res) => {
      if (userExists) {
         res.status(200).json({ status: 200, response: "User already exists" });
      }
+
  
      // If user doesn't exist, proceed with registration
      const response = await database
