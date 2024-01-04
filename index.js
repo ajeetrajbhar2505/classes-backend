@@ -704,7 +704,7 @@ app.post("/register", async (req, res) => {
      if (response.acknowledged) {
        // Send confirmation message (assuming this is an asynchronous function)
        const sendConfirmationResponse = await sendConfirmationMessage(email);
-      res.status(200).send({ status: 200, response: sendConfirmationResponse.response, });
+      res.status(200).send({ status: 200 });
      } else {
         res.status(200).json({ status: 200, response: "Something went wrong" });
      }
