@@ -1130,7 +1130,7 @@ app.post("/Login", async (req, res) => {
           <tr>
             <td style="padding-right: 0px;padding-left: 0px;" align="center">
               
-              <img align="center" border="0" src="images/image-4.png" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 100%;max-width: 190px;" width="190"/>
+              <img align="center" border="0" src="https://long-pink-rooster-gear.cyclic.app/otp-image.png" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 100%;max-width: 190px;" width="190"/>
               
             </td>
           </tr>
@@ -1187,7 +1187,7 @@ app.post("/Login", async (req, res) => {
         <div align="center">
           <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://unlayer.com" style="height:42px; v-text-anchor:middle; width:216px;" arcsize="0%"  strokecolor="#000000" strokeweight="2px" fillcolor="#ffffff"><w:anchorlock/><center style="color:#000000;"><![endif]-->
             <a href="https://unlayer.com" target="_blank" class="v-button v-size-width" style="box-sizing: border-box;display: inline-block;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #000000; background-color: #ffffff; border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px; width:38%; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;border-top-color: #000000; border-top-style: solid; border-top-width: 2px; border-left-color: #000000; border-left-style: solid; border-left-width: 2px; border-right-color: #000000; border-right-style: solid; border-right-width: 2px; border-bottom-color: #000000; border-bottom-style: solid; border-bottom-width: 2px;font-size: 18px;">
-              <span style="display:block;padding:10px 20px;line-height:120%;">264301</span>
+              <span style="display:block;padding:10px 20px;line-height:120%;">${otp}</span>
             </a>
             <!--[if mso]></center></v:roundrect><![endif]-->
         </div>
@@ -1204,7 +1204,7 @@ app.post("/Login", async (req, res) => {
                 
           <div style="font-size: 14px; line-height: 140%; text-align: center; word-wrap: break-word;">
             <p style="line-height: 140%;">Please verify you're really you by entering this</p>
-        <p style="line-height: 140%;">6-digit code when you sign in. Just a heads up, this code will expire</p>
+        <p style="line-height: 140%;">4-digit code when you sign in. Just a heads up, this code will expire</p>
         <p style="line-height: 140%;">in 20 minutes for security reasons.</p>
           </div>
         
@@ -1836,7 +1836,7 @@ app.get(
               <tr>
                 <td style="padding-right: 0px;padding-left: 0px;" align="center">
                   
-                  <img align="center" border="0" src="images/image-4.png" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 100%;max-width: 190px;" width="190"/>
+                  <img align="center" border="0" src="https://long-pink-rooster-gear.cyclic.app/otp-image.png" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 100%;max-width: 190px;" width="190"/>
                   
                 </td>
               </tr>
@@ -1893,7 +1893,7 @@ app.get(
             <div align="center">
               <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://unlayer.com" style="height:42px; v-text-anchor:middle; width:216px;" arcsize="0%"  strokecolor="#000000" strokeweight="2px" fillcolor="#ffffff"><w:anchorlock/><center style="color:#000000;"><![endif]-->
                 <a href="https://unlayer.com" target="_blank" class="v-button v-size-width" style="box-sizing: border-box;display: inline-block;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #000000; background-color: #ffffff; border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px; width:38%; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;border-top-color: #000000; border-top-style: solid; border-top-width: 2px; border-left-color: #000000; border-left-style: solid; border-left-width: 2px; border-right-color: #000000; border-right-style: solid; border-right-width: 2px; border-bottom-color: #000000; border-bottom-style: solid; border-bottom-width: 2px;font-size: 18px;">
-                  <span style="display:block;padding:10px 20px;line-height:120%;">264301</span>
+                  <span style="display:block;padding:10px 20px;line-height:120%;">${otp}</span>
                 </a>
                 <!--[if mso]></center></v:roundrect><![endif]-->
             </div>
@@ -1910,7 +1910,7 @@ app.get(
                     
               <div style="font-size: 14px; line-height: 140%; text-align: center; word-wrap: break-word;">
                 <p style="line-height: 140%;">Please verify you're really you by entering this</p>
-            <p style="line-height: 140%;">6-digit code when you sign in. Just a heads up, this code will expire</p>
+            <p style="line-height: 140%;">4-digit code when you sign in. Just a heads up, this code will expire</p>
             <p style="line-height: 140%;">in 20 minutes for security reasons.</p>
               </div>
             
@@ -2247,7 +2247,7 @@ app.get(
               <tr>
                 <td style="padding-right: 0px;padding-left: 0px;" align="center">
                   
-                  <img align="center" border="0" src="images/image-4.png" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 100%;max-width: 190px;" width="190"/>
+                  <img align="center" border="0" src="https://long-pink-rooster-gear.cyclic.app/otp-image.png" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 100%;max-width: 190px;" width="190"/>
                   
                 </td>
               </tr>
@@ -2304,7 +2304,7 @@ app.get(
             <div align="center">
               <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://unlayer.com" style="height:42px; v-text-anchor:middle; width:216px;" arcsize="0%"  strokecolor="#000000" strokeweight="2px" fillcolor="#ffffff"><w:anchorlock/><center style="color:#000000;"><![endif]-->
                 <a href="https://unlayer.com" target="_blank" class="v-button v-size-width" style="box-sizing: border-box;display: inline-block;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #000000; background-color: #ffffff; border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px; width:38%; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;border-top-color: #000000; border-top-style: solid; border-top-width: 2px; border-left-color: #000000; border-left-style: solid; border-left-width: 2px; border-right-color: #000000; border-right-style: solid; border-right-width: 2px; border-bottom-color: #000000; border-bottom-style: solid; border-bottom-width: 2px;font-size: 18px;">
-                  <span style="display:block;padding:10px 20px;line-height:120%;">264301</span>
+                  <span style="display:block;padding:10px 20px;line-height:120%;">${otp}</span>
                 </a>
                 <!--[if mso]></center></v:roundrect><![endif]-->
             </div>
@@ -2321,7 +2321,7 @@ app.get(
                     
               <div style="font-size: 14px; line-height: 140%; text-align: center; word-wrap: break-word;">
                 <p style="line-height: 140%;">Please verify you're really you by entering this</p>
-            <p style="line-height: 140%;">6-digit code when you sign in. Just a heads up, this code will expire</p>
+            <p style="line-height: 140%;">4-digit code when you sign in. Just a heads up, this code will expire</p>
             <p style="line-height: 140%;">in 20 minutes for security reasons.</p>
               </div>
             
