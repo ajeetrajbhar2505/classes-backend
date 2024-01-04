@@ -694,7 +694,7 @@ app.post("/register", async (req, res) => {
      const userExists = await database.collection("users").findOne({ email });
 
      if (userExists) {
-       return res.status(200).json({ status: 200, response: "User already exists" });
+        res.status(200).json({ status: 200, response: "User already exists" });
      }
  
      // If user doesn't exist, proceed with registration
@@ -703,9 +703,9 @@ app.post("/register", async (req, res) => {
      if (response.insertedCount > 0) {
        // Send confirmation message (assuming this is an asynchronous function)
        const sendConfirmationResponse = await sendConfirmationMessage();
-       return res.status(sendConfirmationResponse.status).json({ status: 200, response: sendConfirmationResponse.response });
+        res.status(200).json({ status: 200, response: sendConfirmationResponse.response });
      } else {
-       return res.status(200).json({ status: 200, response: "Something went wrong" });
+        res.status(200).json({ status: 200, response: "Something went wrong" });
      }
   } catch (error) {
     console.error("Error in register:", error);
