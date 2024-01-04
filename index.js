@@ -2106,7 +2106,6 @@ app.get(
             // Handle token generation failure
             return res.status(500).send("Token generation failed");
           }
-
           // Send the token in the response
 
           var mailOption = {
