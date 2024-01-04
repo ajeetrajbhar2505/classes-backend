@@ -1908,7 +1908,7 @@ passport.use(
     {
       clientID: process.env.OAuth_client_id,
       clientSecret: process.env.OAuth_Client_secret,
-      callbackURL: Oprocess.env.Auth_google_Callback_url, // This is a placeholder, will be dynamically set in the strategy callback
+      callbackURL: process.env.Auth_google_Callback_url, // This is a placeholder, will be dynamically set in the strategy callback
       scope: "email",
       passReqToCallback: true, // This allows you to access the request object in the verify callback
     },
