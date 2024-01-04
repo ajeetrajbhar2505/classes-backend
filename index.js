@@ -1287,7 +1287,6 @@ app.post("/verifyOTP", async (req, res) => {
 
       if (usersResponse) {
         // Send a successful response with user details
-        await database.collection("tokens").deleteOne({ otp: otp });
         return res.status(200).send({
           status: 200,
           response: {
