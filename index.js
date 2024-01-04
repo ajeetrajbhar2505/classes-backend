@@ -687,8 +687,7 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-  const { email} = req.body;
-
+  const { email} = req.body
   try {
      // Check if the user already exists
      const userExists = await database.collection("users").findOne({ email });
@@ -698,12 +697,14 @@ app.post("/register", async (req, res) => {
      }
  
      // If user doesn't exist, proceed with registration
-     const response = await database.collection("users").insertOne(req.body);
+     const response = await database
+     .collection("users")
+     .insertOne(req.body);
  
      if (response.insertedCount > 0) {
        // Send confirmation message (assuming this is an asynchronous function)
-       const sendConfirmationResponse = await sendConfirmationMessage();
-        res.status(200).json({ status: 200, response: sendConfirmationResponse.response });
+       const sendConfirmationResponse = await sendConfirmationMessage(email);
+      res.status(200).send({ status: 200, response: sendConfirmationResponse.response, });
      } else {
         res.status(200).json({ status: 200, response: "Something went wrong" });
      }
@@ -2635,10 +2636,10 @@ function isSafetyError(error) {
 
 
 
-function sendConfirmationMessage(){
+function sendConfirmationMessage(email){
   var mailOption = {
     from: "ajeetrajbhar2504@gmail.com",
-    to: "ajeetrajbhar2504@gmail.com",
+    to: email,
     subject: "Registration Confirmation - Class App",
     html: `<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
