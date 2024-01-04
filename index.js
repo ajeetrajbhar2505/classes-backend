@@ -693,7 +693,7 @@ app.post("/register", async (req, res) => {
      const userExists = await database.collection("users").findOne({ email });
 
      if (userExists) {
-        res.status(200).json({ status: 200, response: "User already exists" });
+        res.status(200).json({ status: 201, response: "User already exists" });
      }
 
  
@@ -1047,7 +1047,7 @@ app.post("/register", async (req, res) => {
       res.send({ status: 200, response: "Otp send successfully" });
     });
      } else {
-        res.status(200).json({ status: 200, response: "Something went wrong" });
+        res.status(400).json({ status: 200, response: "Something went wrong" });
      }
   } catch (error) {
     console.error("Error in register:", error);
@@ -2035,10 +2035,8 @@ app.get(
           await database.collection("users").updateOne(
             { _id: new ObjectId(userExists._id) },
             {
-              $set: {
-                logged: true,
-                date: Date(),
-              },
+              $set:
+              { ...req.user._json, logged: true,date: Date(), }
             },
             { upsert: true }
           );
