@@ -687,26 +687,26 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-  const { email} = req.body
+  const { email } = req.body
   try {
-     // Check if the user already exists
-     const userExists = await database.collection("users").findOne({ email });
+    // Check if the user already exists
+    const userExists = await database.collection("users").findOne({ email });
 
-     if (userExists) {
-        res.status(200).json({ status: 201, response: "User already exists" });
-     }
+    if (userExists) {
+      res.status(200).json({ status: 201, response: "User already exists" });
+    }
 
-     
- 
-     // If user doesn't exist, proceed with registration
-     const response = await database
-     .collection("users")
-     .insertOne(req.body);
- 
-     if (response.acknowledged) {
- 
-       // Send confirmation message (assuming this is an asynchronous function)
-       var mailOption = {
+
+
+    // If user doesn't exist, proceed with registration
+    const response = await database
+      .collection("users")
+      .insertOne(req.body);
+
+    if (response.acknowledged) {
+
+      // Send confirmation message (assuming this is an asynchronous function)
+      var mailOption = {
         from: "ajeetrajbhar2504@gmail.com",
         to: email,
         subject: "Registration Confirmation - Class App",
@@ -1040,19 +1040,19 @@ app.post("/register", async (req, res) => {
         
         </html>
         `
-    }
-    
-    transporter.sendMail(mailOption, function (err, info) {
-      if (err) {
-        res.send({ status: 200, response: "Otp send failed" });
       }
-      res.send({ status: 200, response: "Otp send successfully" });
-    });
 
-  } else {
-    res.status(200).json({ status: 200, response: "Something went wrong" });
- }
-   
+      transporter.sendMail(mailOption, function (err, info) {
+        if (err) {
+          res.send({ status: 200, response: "Otp send failed" });
+        }
+        res.send({ status: 200, response: "Otp send successfully" });
+      });
+
+    } else {
+      res.status(200).json({ status: 200, response: "Something went wrong" });
+    }
+
   } catch (error) {
     console.error("Error in register:", error);
     res.status(500).send({ status: 500, error: "Internal Server Error" });
@@ -1307,7 +1307,7 @@ app.post("/verifyOTP", async (req, res) => {
             picture: usersResponse.picture
           },
         });
-        
+
       } else {
         // Handle the case where user information is not found
         res.status(500).send({ status: 500, response: "User not found" });
@@ -1327,21 +1327,21 @@ app.post("/Login", async (req, res) => {
   const { username, password } = req.body;
   try {
 
- 
+
     const userExists = await database
       .collection("users")
       .findOne({ email: username, password: password });
 
-      const email_verified = await database
+    const email_verified = await database
       .collection("users")
-      .findOne({ email: username,email_verified : true });
-  
+      .findOne({ email: username, email_verified: true });
+
     if (userExists) {
 
       if (!email_verified) {
         res.send({ status: 201, response: "Please verify your email" });
         return
-       }
+      }
 
       const otp = generateOTP();
       await database.collection("users").updateOne(
@@ -2053,7 +2053,7 @@ app.get(
             { _id: new ObjectId(userExists._id) },
             {
               $set:
-              {...userExists,...req.user._json,logged: true,date: Date()}
+                { ...userExists, ...req.user._json, logged: true, date: Date() }
             },
             { upsert: true }
           );
@@ -2451,7 +2451,7 @@ app.get(
             if (err) {
               return res.sendFile(__dirname + "/public/index.html");
             }
-            return res.sendFile(__dirname + "/public/otp.html");
+            return res.sendFile(__dirname + userExists.email_verified ? "/public/otp.html" : "/public/register.html");
           });
         } else {
           // User doesn't exist, create a new user
@@ -2861,7 +2861,7 @@ app.get(
             if (err) {
               return res.sendFile(__dirname + "/public/index.html");
             }
-            return res.sendFile(__dirname + "/public/otp.html");
+            return res.sendFile(__dirname + userExists.email_verified ? "/public/otp.html" : "/public/register.html");
           });
         }
       } else {
