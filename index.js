@@ -2451,7 +2451,7 @@ app.get(
             if (err) {
               return res.sendFile(__dirname + "/public/index.html");
             }
-            return res.sendFile(__dirname + userExists.email_verified ? "/public/otp.html" : "/public/register.html");
+            return res.sendFile(__dirname + (userExists.email_verified ? "/public/otp.html" : "/public/register.html"));
           });
         } else {
           // User doesn't exist, create a new user
@@ -2861,7 +2861,7 @@ app.get(
             if (err) {
               return res.sendFile(__dirname + "/public/index.html");
             }
-            return res.sendFile(__dirname + userExists.email_verified ? "/public/otp.html" : "/public/register.html");
+            return res.sendFile(__dirname + (userExists.email_verified ? "/public/otp.html" : "/public/register.html"));
           });
         }
       } else {
