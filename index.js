@@ -1839,7 +1839,7 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
     const filePath =
       req.body.content == "document"
         ? `https://drive.google.com/file/d/${fileId}/preview`
-        : `https://drive.google.com/uc?id=${fileId}`;
+        : `https://drive.google.com/file/d/${fileId}/preview`;
     const body = { ...req.body, content_link: filePath };
     const token = req.headers.authorization.substring("Bearer ".length);
     // Verify if the provided token exists in the "tokens" collection

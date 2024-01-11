@@ -45,3 +45,12 @@ function removearrayOfObjectsDuplicates(array, property) {
 const filter1 = unsortedArray.filter((object, index, self) => self.indexOf(object) === index)
 const filter2 = arrayOfObjects.filter((object, index, self) => self.findIndex((o) => o.name == object.name) === index)
 console.log(filter2);
+
+
+
+
+
+
+
+
+
