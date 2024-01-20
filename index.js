@@ -86,17 +86,17 @@ async function authorizeToken(req, res, next) {
     // Continue with the route handling
     next();
   } catch (error) {
-    return res.status(401).send("Unauthorized");
+    return res.send("Unauthorized");
   }
 }
 
 app.get("/classDetails", authorizeToken, async (req, res) => {
   try {
     const response = await database.collection("classDetails").find({}).toArray();
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in classDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -152,10 +152,10 @@ app.get("/mostWatched", authorizeToken, async (req, res) => {
     ];
 
     const response = await database.collection("contentDetails").aggregate(pipeline).toArray();
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in mostWatched:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -165,10 +165,10 @@ app.get("/lectureDetails", authorizeToken, async (req, res) => {
   try {
     const { classId } = req.params;
     const response = await database.collection("lectureDetails").find({}).toArray();
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in lectureDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -176,10 +176,10 @@ app.get("/lectureDetails/:classId", authorizeToken, async (req, res) => {
   try {
     const { classId } = req.params;
     const response = await database.collection("lectureDetails").find({ classId: classId }).toArray();
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in lectureDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -187,13 +187,13 @@ app.post("/upsertGroup", authorizeToken, async (req, res) => {
   try {
     const response = await database.collection("classDetails").insertOne(req.body)
     if (response.insertedCount > 0) {
-      res.status(200).send({ status: 200, response: response.ops });
+      res.send({ status: 200, response: response.ops });
     } else {
-      res.status(200).send({ status: 200, response: "Something went wrong" });
+      res.send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
     console.error("Error in lectureDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -201,13 +201,13 @@ app.post("/upsertLecture", authorizeToken, async (req, res) => {
   try {
     const response = await database.collection("lectureDetails").insertOne(req.body)
     if (response.insertedCount > 0) {
-      res.status(200).send({ status: 200, response: response.ops });
+      res.send({ status: 200, response: response.ops });
     } else {
-      res.status(200).send({ status: 200, response: "Something went wrong" });
+      res.send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
     console.error("Error in lectureDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -274,10 +274,10 @@ app.post("/upsertAttemptedUsers", authorizeToken, async (req, res) => {
       await database.collection("quizes").insertOne(insertOperation);
     }
 
-    res.status(200).send({ status: 200, response: "User updated/added successfully" });
+    res.send({ status: 200, response: "User updated/added successfully" });
   } catch (error) {
     console.error("Error in upsertAttemptedUsers:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -346,10 +346,10 @@ app.post("/upsertViewCount", authorizeToken, async (req, res) => {
       await database.collection("contentDetails").insertOne(insertOperation);
     }
 
-    res.status(200).send({ status: 200, response: "User updated/added successfully" });
+    res.send({ status: 200, response: "User updated/added successfully" });
   } catch (error) {
     console.error("Error in upsertViewCount:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -394,10 +394,10 @@ app.get("/scoreCard", authorizeToken, async (req, res) => {
 
 
 
-    res.status(200).send({ status: 200, response: result });
+    res.send({ status: 200, response: result });
   } catch (error) {
     console.error("Error in fetching popular lecture details:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -460,10 +460,10 @@ app.get("/popular_lectureDetails", authorizeToken, async (req, res) => {
 
 
 
-    res.status(200).send({ status: 200, response: result });
+    res.send({ status: 200, response: result });
   } catch (error) {
     console.error("Error in fetching popular lecture details:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -506,10 +506,10 @@ app.post("/upsertWatchTime", authorizeToken, async (req, res) => {
       );
     }
 
-    res.status(200).send({ status: 200, response: "Operation performed successfully" });
+    res.send({ status: 200, response: "Operation performed successfully" });
   } catch (error) {
     console.error("Error in upsertWatchTime:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -540,13 +540,13 @@ app.post("/upsertUsersResponse", authorizeToken, async (req, res) => {
 
     if (result.modifiedCount === 0 && result.upsertedCount === 0) {
       // If neither modified nor upserted, it means the document already existed with the same values
-      res.status(200).send({ status: 200, response: "User already existed with the same values" });
+      res.send({ status: 200, response: "User already existed with the same values" });
     } else {
-      res.status(200).send({ status: 200, response: "User updated/added successfully" });
+      res.send({ status: 200, response: "User updated/added successfully" });
     }
   } catch (error) {
     console.error("Error in upsertUsersResponse:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -561,10 +561,10 @@ app.get("/contentDetails/:classId/:lec_id", authorizeToken, async (req, res) => 
       .find({ classId: classId, lec_id: lec_id })
       .toArray();
 
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in contentDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -584,10 +584,10 @@ app.get("/content/:content_id", authorizeToken, async (req, res) => {
       }
     }
 
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in content:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -602,23 +602,23 @@ app.get("/notifications", authorizeToken, async (req, res) => {
         (notification) => notification.authorId !== userData.userId
       );
 
-      res.status(200).send({ status: 200, response: filteredResponse });
+      res.send({ status: 200, response: filteredResponse });
     } else {
-      res.status(200).send({ status: 200, response: "Something went wrong" });
+      res.send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
     console.error("Error in notifications:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
 app.get("/contentDetails", authorizeToken, async (req, res) => {
   try {
     const response = await database.collection("contentDetails").find({}).toArray();
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in contentDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -632,10 +632,10 @@ app.post("/search_contentDetails", authorizeToken, async (req, res) => {
     // Fetching data from MongoDB
     const response = await database.collection("contentDetails").find(query).toArray();
 
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in search_contentDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -647,10 +647,10 @@ app.get("/calenderDetails/:desiredMonth", authorizeToken, async (req, res) => {
       .find({ month: desiredMonth })
       .toArray();
 
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in calenderDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -661,13 +661,13 @@ app.post("/upsertCalenderDetails", authorizeToken, async (req, res) => {
       .insertOne(req.body);
 
     if (response.insertedCount > 0) {
-      res.status(200).send({ status: 200, response: response.ops });
+      res.send({ status: 200, response: response.ops });
     } else {
-      res.status(200).send({ status: 200, response: "Something went wrong" });
+      res.send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
     console.error("Error in upsertCalenderDetails:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -679,10 +679,10 @@ app.get("/Querries/:contentId", authorizeToken, async (req, res) => {
       .find({ contentId: contentId })
       .toArray();
 
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
     console.error("Error in Querries:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -693,7 +693,7 @@ app.post("/register", async (req, res) => {
     const userExists = await database.collection("users").findOne({ email });
 
     if (userExists) {
-      res.status(200).json({ status: 201, response: "User already exists" });
+      res.json({ status: 201, response: "User already exists" });
       return
     }
 
@@ -1051,12 +1051,12 @@ app.post("/register", async (req, res) => {
       });
 
     } else {
-      res.status(200).json({ status: 200, response: "Something went wrong" });
+      res.json({ status: 200, response: "Something went wrong" });
     }
 
   } catch (error) {
     console.error("Error in register:", error);
-    res.status(500).send({ status: 500, error: "Internal Server Error" });
+    res.send({ status: 500, error: "Internal Server Error" });
   }
 });
 
@@ -1100,13 +1100,13 @@ app.post("/upsertUserQuerries", async (req, res) => {
         .insertOne(notification);
       io.emit("notification", notification);
 
-      res.status(200).send({ status: 200, response: "Message sent successfully!" });
+      res.send({ status: 200, response: "Message sent successfully!" });
     } else {
-      res.status(200).send({ status: 200, response: "Something went wrong" });
+      res.send({ status: 200, response: "Something went wrong" });
     }
   } catch (error) {
     console.error("Error in upsertUserQuerries:", error);
-    res.status(500).send({ status: 500, error: "Internal server error" });
+    res.send({ status: 500, error: "Internal server error" });
   }
 });
 
@@ -1170,14 +1170,14 @@ app.post("/upsertTeacherResponse", async (req, res) => {
         }
       } else {
         // Handle the case when the document update fails
-        res.status(500).json({ error: "Failed to update the document." });
+        res.json({ error: "Failed to update the document." });
       }
     } else {
       // Handle the case when token verification fails
-      res.status(401).json({ error: "Unauthorized" });
+      res.json({ error: "Unauthorized" });
     }
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    res.json({ error: "Internal server error" });
   }
 });
 
@@ -1249,7 +1249,7 @@ app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
       .find({ _id: new ObjectId(classId) })
       .toArray();
     if (classDetails.length === 0) {
-      return res.status(500).send({ status: 500, response: "Class not found" });
+      return res.send({ status: 303, response: "Class not found" });
     }
     const className = classDetails[0].classNamme || "";
     const response = await database
@@ -1300,7 +1300,7 @@ app.post("/verifyOTP", async (req, res) => {
 
       if (usersResponse) {
         // Send a successful response with user details
-        return res.status(200).send({
+        return res.send({
           status: 200,
           response: {
             userId: userId,
@@ -1311,16 +1311,16 @@ app.post("/verifyOTP", async (req, res) => {
 
       } else {
         // Handle the case where user information is not found
-        res.status(500).send({ status: 500, response: "User not found" });
+        res.send({ status: 500, response: "User not found" });
       }
     } else {
       // Handle the case where the OTP is invalid
-      res.status(500).send({ status: 500, response: "OTP is invalid" });
+      res.send({ status: 500, response: "OTP is invalid" });
     }
   } catch (error) {
     // Handle other errors
     console.error(error);
-    res.status(500).send({ status: 500, response: "Internal server error" });
+    res.send({ status: 500, response: "Internal server error" });
   }
 })
 
@@ -1753,7 +1753,7 @@ app.post("/Login", async (req, res) => {
         res.send({ status: 200, response: "Otp send successfully" });
       });
     } else {
-      res.send({ status: 500, response: "Credentials are incorrect" });
+      res.send({ status: 303, response: "Credentials are incorrect" });
     }
   } catch (error) {
     res.send({ status: 500, response: "Internal server error" });
@@ -1830,7 +1830,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Route to handle file upload
 app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
   if (!req.file) {
-    return res.status(400).send("No file uploaded.");
+    return res.send("No file uploaded.");
   }
 
   try {
@@ -1896,7 +1896,7 @@ app.post("/upload", upload.single("file"), authorizeToken, async (req, res) => {
     }
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).send("An error occurred while uploading the file.");
+    res.send("An error occurred while uploading the file.");
   }
 });
 
@@ -1987,11 +1987,11 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
       .updateOne({ _id: updateId }, { $set: profileData }, { upsert: true });
 
     if (response.matchedCount === 0) {
-      return res.status(500).json({ status: 500, response: "User not found" });
+      return res.json({ status: 303, response: "User not found" });
     }
 
     if (response.modifiedCount === 0) {
-      return res.status(200).json({ status: 200, response: "No changes made" });
+      return res.json({ status: 200, response: "No changes made" });
     }
 
     res
@@ -1999,7 +1999,7 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
       .json({ status: 200, response: "Profile updated successfully" });
   } catch (error) {
     console.error("Error in /updateProfile:", error);
-    res.status(500).json({ status: 500, response: "Internal server error" });
+    res.json({ status: 500, response: "Internal server error" });
   }
 });
 
@@ -2020,19 +2020,19 @@ app.get("/profile", authorizeToken, authorizeToken, async (req, res) => {
 
       if (userResponse) {
         // User found; send the user's data in the response
-        res.status(200).send({ status: 200, response: userResponse });
+        res.send({ status: 200, response: userResponse });
       } else {
-        // User not found; return a 500 response
-        res.status(500).send("User not found");
+        // User not found; return a 303 response
+        res.send("User not found");
       }
     } else {
-      // Token not valid; return a 500 response
-      res.status(500).send("Token not valid");
+      // Token not valid; return a 303 response
+      res.send("Token not valid");
     }
   } catch (error) {
     // Handle any errors that may occur during database operations
     console.error("Error in /profile route:", error);
-    res.status(500).send("Internal Server Error");
+    res.send("Internal Server Error");
   }
 });
 
@@ -2472,7 +2472,7 @@ app.get(
 
           if (!token) {
             // Handle token generation failure
-            return res.status(500).send("Token generation failed");
+            return res.send("Token generation failed");
           }
           // Send the token in the response
 
@@ -2867,12 +2867,12 @@ app.get(
         }
       } else {
         // User is not authenticated, handle accordingly
-        return res.status(401).send("User not authenticated");
+        return res.send("User not authenticated");
       }
     } catch (error) {
       // Handle any errors that may occur during token generation or database operations
       console.error("Error in Google callback:", error);
-      return res.status(500).send("Internal Server Error");
+      return res.send("Internal Server Error");
     }
   }
 );
@@ -2962,9 +2962,9 @@ app.post("/geminiSearch", async (req, res) => {
     const { prompt } = req.body;
     const response = await run(prompt);
 
-    res.status(200).send({ status: 200, response: response });
+    res.send({ status: 200, response: response });
   } catch (error) {
-    res.status(200).send({ status: 200, response: 'Can not provide answer for this question' });
+    res.send({ status: 200, response: 'Can not provide answer for this question' });
   }
 
 });
