@@ -694,6 +694,7 @@ app.post("/register", async (req, res) => {
 
     if (userExists) {
       res.status(200).json({ status: 201, response: "User already exists" });
+      return
     }
 
 
@@ -1786,7 +1787,7 @@ async function uploadFile(authClient, fileInfo) {
     const drive = google.drive({ version: "v3", auth: authClient });
 
     const fileMetaData = {
-      name: fileInfo.filename,
+      name: fileInfo.originalname,
       parents: ["1CBsb1iOv_zEVn3A8JdxiiH3nWOrcUXpI"],
     };
 
