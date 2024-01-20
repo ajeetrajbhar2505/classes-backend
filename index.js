@@ -1315,7 +1315,7 @@ app.post("/verifyOTP", async (req, res) => {
       }
     } else {
       // Handle the case where the OTP is invalid
-      res.status(204).send({ status: 204, response: "OTP is invalid" });
+      res.status(404).send({ status: 404, response: "OTP is invalid" });
     }
   } catch (error) {
     // Handle other errors
@@ -1753,7 +1753,7 @@ app.post("/Login", async (req, res) => {
         res.send({ status: 200, response: "Otp send successfully" });
       });
     } else {
-      res.send({ status: 204, response: "Credentials are incorrect" });
+      res.send({ status: 404, response: "Credentials are incorrect" });
     }
   } catch (error) {
     res.send({ status: 500, response: "Internal server error" });
