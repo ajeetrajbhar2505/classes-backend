@@ -1249,7 +1249,7 @@ app.get("/fetchquizes/:classId/:lec_id", authorizeToken, async (req, res) => {
       .find({ _id: new ObjectId(classId) })
       .toArray();
     if (classDetails.length === 0) {
-      return res.status(333).send({ status: 333, response: "Class not found" });
+      return res.status(303).send({ status: 303, response: "Class not found" });
     }
     const className = classDetails[0].classNamme || "";
     const response = await database
@@ -1315,7 +1315,7 @@ app.post("/verifyOTP", async (req, res) => {
       }
     } else {
       // Handle the case where the OTP is invalid
-      res.status(333).send({ status: 333, response: "OTP is invalid" });
+      res.status(303).send({ status: 303, response: "OTP is invalid" });
     }
   } catch (error) {
     // Handle other errors
@@ -1753,7 +1753,7 @@ app.post("/Login", async (req, res) => {
         res.send({ status: 200, response: "Otp send successfully" });
       });
     } else {
-      res.send({ status: 333, response: "Credentials are incorrect" });
+      res.send({ status: 303, response: "Credentials are incorrect" });
     }
   } catch (error) {
     res.send({ status: 500, response: "Internal server error" });
@@ -1987,7 +1987,7 @@ app.post("/updateProfile", authorizeToken, async (req, res) => {
       .updateOne({ _id: updateId }, { $set: profileData }, { upsert: true });
 
     if (response.matchedCount === 0) {
-      return res.status(333).json({ status: 333, response: "User not found" });
+      return res.status(303).json({ status: 303, response: "User not found" });
     }
 
     if (response.modifiedCount === 0) {
@@ -2022,12 +2022,12 @@ app.get("/profile", authorizeToken, authorizeToken, async (req, res) => {
         // User found; send the user's data in the response
         res.status(200).send({ status: 200, response: userResponse });
       } else {
-        // User not found; return a 333 response
-        res.status(333).send("User not found");
+        // User not found; return a 303 response
+        res.status(303).send("User not found");
       }
     } else {
-      // Token not valid; return a 333 response
-      res.status(333).send("Token not valid");
+      // Token not valid; return a 303 response
+      res.status(303).send("Token not valid");
     }
   } catch (error) {
     // Handle any errors that may occur during database operations
